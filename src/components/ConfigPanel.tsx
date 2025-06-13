@@ -13,20 +13,20 @@ import { useConfig } from '../context/ConfigContext';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { initializeOpenAI } from '../services/openai';
+import { useErrorLog } from '../App';
 
 export function ConfigPanel() {
-  const { openaiApiKey, setOpenaiApiKey } = useConfig();
+  const { apiKey, setApiKey } = useConfig();
   const [showKey, setShowKey] = useState(false);
-  const [tempKey, setTempKey] = useState(openaiApiKey);
-  const [error, setError] = useState<string | null>(null);
+  const [tempKey, setTempKey] = useState(apiKey);
+  const logError = useErrorLog();
 
   const handleSave = () => {
     try {
       initializeOpenAI(tempKey);
-      setOpenaiApiKey(tempKey);
-      setError(null);
+      setApiKey(tempKey);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize OpenAI client');
+      logError(err instanceof Error ? err.message : 'Failed to initialize OpenAI client');
     }
   };
 
@@ -48,11 +48,6 @@ export function ConfigPanel() {
         Configuration
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {error && (
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
-        )}
         <TextField
           label="OpenAI API Key"
           type={showKey ? 'text' : 'password'}
@@ -75,7 +70,7 @@ export function ConfigPanel() {
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={tempKey === openaiApiKey}
+          disabled={tempKey === apiKey}
         >
           Save Configuration
         </Button>
