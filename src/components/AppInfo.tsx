@@ -7,6 +7,7 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 const BUSINESS_PURPOSE = `
 This system helps you write a detailed, high-quality article on any topic. Just enter your needs or topic in the Goal section, and our AI agents will plan, research, write, and review the article for you—automatically!
 
+
 This demo showcases a true multi-agent system: each agent (Planner, Researcher, Writer, Reviewer) is a real, independent process connected to a large language model (LLM). Agents communicate and coordinate by sending messages through a shared event bus, just like in modern distributed AI architectures.`;
 
 const INSTRUCTIONS = [
