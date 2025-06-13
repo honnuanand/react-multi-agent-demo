@@ -10,7 +10,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 const AGENT_COLOR = '#1976d2'; // blue for Planner
 
 export function PlannerAgent(props: { sx?: object }) {
-  const [input, setInput] = useState("Build a product demo");
+  const [input, setInput] = useState("How AI is transforming healthcare");
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { emit } = useAgentBus();
@@ -45,7 +45,7 @@ export function PlannerAgent(props: { sx?: object }) {
   };
 
   React.useEffect(() => {
-    setInput("Build a product demo");
+    setInput("How AI is transforming healthcare");
   }, [resetSignal]);
 
   return (
@@ -56,6 +56,7 @@ export function PlannerAgent(props: { sx?: object }) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         sx={{ mb: 2 }}
+        placeholder="e.g., How AI is transforming healthcare"
       />
       <Button 
         variant="contained" 
@@ -63,7 +64,7 @@ export function PlannerAgent(props: { sx?: object }) {
         onClick={handlePlan}
         disabled={isLoading}
       >
-        {isLoading ? <CircularProgress size={24} /> : "Create Plan"}
+        {isLoading ? <CircularProgress size={24} /> : "Generate Article Plan"}
       </Button>
       {isLoading ? (
         <CircularProgress size={24} />
