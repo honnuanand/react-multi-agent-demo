@@ -39,7 +39,7 @@ export default function App() {
       <ConfigProvider>
         <ResetProvider>
           <AgentBusProvider>
-            <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <Box sx={{ display: "flex" }}>
               <AppBar position="fixed" sx={{ zIndex: 1201 }}>
                 <Toolbar>
                   <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
@@ -93,27 +93,19 @@ export default function App() {
                   </List>
                 </Box>
               </Drawer>
-              <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+              <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
                 <Toolbar />
                 <AppInfo />
                 <ConfigPanel />
                 <ResetButton />
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gap: 2,
-                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                    gridTemplateRows: '1fr 1fr',
-                    alignItems: 'stretch',
-                    justifyItems: 'stretch',
-                    mt: 2,
-                  }}
-                >
-                  <PlannerAgent />
-                  <ResearchAgent />
-                  <WriterAgent />
-                  <ReviewerAgent />
-                </Box>
+                {selectedExample === "Tier 1: Basic Flow" && (
+                  <>
+                    <PlannerAgent />
+                    <ResearchAgent />
+                    <WriterAgent />
+                    <ReviewerAgent />
+                  </>
+                )}
                 <AgentFlowGraph />
                 <CollapsibleTimeline />
               </Box>
