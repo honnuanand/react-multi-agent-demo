@@ -243,42 +243,36 @@ export default function App() {
                       <Box sx={{ position: 'relative', mb: 2 }}>
                         <Box
                           sx={{
-                            display: 'grid',
-                            gap: 2,
-                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                            gridTemplateRows: { xs: 'repeat(4, auto)', md: '1fr 1fr auto' },
+                            display: { xs: 'block', md: 'flex' },
+                            gap: 3,
                             alignItems: 'stretch',
-                            justifyItems: 'stretch',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            width: '100%',
+                            maxWidth: 1800,
+                            mx: 'auto',
                           }}
                         >
-                          {/* Row 1 */}
-                          <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
-                          <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
-                          {/* Row 2 */}
-                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233', width: 350, minHeight: 180, gridColumn: { xs: '1', md: '1' }, gridRow: { xs: '3', md: '2' } }} />
-                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733', gridColumn: { xs: '1', md: '2' }, gridRow: { xs: '4', md: '2' } }} />
-                          {/* Row 3: HTML/PDF group below Writer */}
-                          <Box
-                            sx={{
-                              gridColumn: { xs: '1', md: '1' },
-                              gridRow: { xs: '5', md: '3' },
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: 2,
-                              p: 2,
-                              bgcolor: '#f5f5f5',
-                              border: '2px solid #e3f2fd',
-                              borderRadius: 2,
-                              boxShadow: 2,
-                              alignItems: 'stretch',
-                              justifyContent: 'flex-start',
-                              maxWidth: '100%',
-                              width: '100%',
-                            }}
-                          >
-                            <HtmlAgent sx={{}} />
-                            <PdfAgent sx={{}} />
-                          </Box>
+                          <PlannerAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
+                          <ResearchAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
+                          <WriterAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                          <ReviewerAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                        </Box>
+                        <Box
+                          sx={{
+                            mt: 3,
+                            display: 'flex',
+                            flexDirection: { xs: 'column', md: 'row' },
+                            gap: 3,
+                            width: '100%',
+                            maxWidth: 1800,
+                            mx: 'auto',
+                            alignItems: 'flex-start',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <HtmlAgent sx={{ minWidth: 320, maxWidth: 480, flex: 1 }} />
+                          <PdfAgent sx={{ minWidth: 320, maxWidth: 480, flex: 1 }} />
                         </Box>
                       </Box>
                     )}
