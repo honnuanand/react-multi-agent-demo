@@ -8,6 +8,12 @@
 [![Last Commit](https://img.shields.io/github/last-commit/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/commits/main)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Click%20Here-blue?logo=githubpages&style=for-the-badge)](https://honnuanand.github.io/react-multi-agent-demo/)
 
+## Demo Video
+
+<video src="media/Multi-Agent_demo.mp4" controls width="700" poster="https://img.youtube.com/vi/placeholder/0.jpg">
+  Your browser does not support the video tag.
+</video>
+
 ---
 
 ## 🌟 Purpose
