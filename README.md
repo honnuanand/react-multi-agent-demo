@@ -10,9 +10,7 @@
 
 ## Demo Video
 
-<video src="media/Multi-Agent_demo.mp4" controls width="700" poster="https://img.youtube.com/vi/placeholder/0.jpg">
-  Your browser does not support the video tag.
-</video>
+<iframe width="700" height="394" src="https://www.youtube.com/embed/OL7_WnaCMHQ" title="Multi-Agent Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 
 ---
 
