@@ -134,7 +134,7 @@ export default function App() {
                     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                       Agent Collaboration
                     </Typography>
-                    {selectedExample === "Tier 1: Basic Flow" && (
+                    {(selectedExample === "Tier 1: Basic Flow" || selectedExample === "Tier 2: Advanced Flow") && (
                       <Box sx={{ position: 'relative', mb: 2 }}>
                         <Box
                           sx={{
