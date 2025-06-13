@@ -18,6 +18,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const drawerWidth = 240;
 
@@ -62,6 +63,37 @@ function ErrorLogProvider({ children }: { children: ReactNode }) {
 
 export default function App() {
   const [selectedExample, setSelectedExample] = useState("Tier 1: Basic Flow");
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawerContent = (
+    <>
+      <Toolbar />
+      <Box sx={{ overflow: "auto" }}>
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={selectedExample === "Tier 1: Basic Flow"}
+              onClick={() => { setSelectedExample("Tier 1: Basic Flow"); setMobileOpen(false); }}
+            >
+              <ListItemText primary="Tier 1: Basic Flow" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              selected={selectedExample === "Multi-LLM Agent Flow"}
+              onClick={() => { setSelectedExample("Multi-LLM Agent Flow"); setMobileOpen(false); }}
+            >
+              <ListItemText primary="Multi-LLM Agent Flow" />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+    </>
+  );
 
   return (
     <ThemeProvider theme={theme}>
@@ -73,6 +105,15 @@ export default function App() {
               <Box sx={{ display: "flex" }}>
                 <AppBar position="fixed" sx={{ zIndex: 1201 }}>
                   <Toolbar>
+                    <IconButton
+                      color="inherit"
+                      aria-label="open drawer"
+                      edge="start"
+                      onClick={handleDrawerToggle}
+                      sx={{ mr: 2, display: { sm: 'none' } }}
+                    >
+                      <MenuIcon />
+                    </IconButton>
                     <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                       AI Agent Collaboration
                     </Typography>
@@ -91,9 +132,23 @@ export default function App() {
                     </Tooltip>
                   </Toolbar>
                 </AppBar>
+                {/* Responsive Drawer */}
+                <Drawer
+                  variant="temporary"
+                  open={mobileOpen}
+                  onClose={handleDrawerToggle}
+                  ModalProps={{ keepMounted: true }}
+                  sx={{
+                    display: { xs: 'block', sm: 'none' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                  }}
+                >
+                  {drawerContent}
+                </Drawer>
                 <Drawer
                   variant="permanent"
                   sx={{
+                    display: { xs: 'none', sm: 'block' },
                     width: drawerWidth,
                     flexShrink: 0,
                     [`& .MuiDrawer-paper`]: {
@@ -101,28 +156,9 @@ export default function App() {
                       boxSizing: "border-box",
                     },
                   }}
+                  open
                 >
-                  <Toolbar />
-                  <Box sx={{ overflow: "auto" }}>
-                    <List>
-                      <ListItem disablePadding>
-                        <ListItemButton
-                          selected={selectedExample === "Tier 1: Basic Flow"}
-                          onClick={() => setSelectedExample("Tier 1: Basic Flow")}
-                        >
-                          <ListItemText primary="Tier 1: Basic Flow" />
-                        </ListItemButton>
-                      </ListItem>
-                      <ListItem disablePadding>
-                        <ListItemButton
-                          selected={selectedExample === "Tier 2: Advanced Flow"}
-                          onClick={() => setSelectedExample("Tier 2: Advanced Flow")}
-                        >
-                          <ListItemText primary="Tier 2: Advanced Flow" />
-                        </ListItemButton>
-                      </ListItem>
-                    </List>
-                  </Box>
+                  {drawerContent}
                 </Drawer>
                 <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
                   <Toolbar />
