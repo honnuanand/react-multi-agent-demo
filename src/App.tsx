@@ -12,6 +12,7 @@ import { AgentBusProvider } from "./context/AgentBusContext";
 import { ConfigProvider } from './context/ConfigContext';
 import { AgentFlowGraph } from './components/AgentFlowGraph';
 import { ResetButton } from "./components/ResetButton";
+import { AppInfo } from "./components/AppInfo";
 
 const drawerWidth = 240;
 
@@ -36,7 +37,7 @@ export default function App() {
       <ConfigProvider>
         <ResetProvider>
           <AgentBusProvider>
-            <Box sx={{ display: "flex" }}>
+            <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <AppBar position="fixed" sx={{ zIndex: 1201 }}>
                 <Toolbar>
                   <Typography variant="h6" noWrap component="div">
@@ -79,30 +80,27 @@ export default function App() {
               </Drawer>
               <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
                 <Toolbar />
-                <Container maxWidth="lg">
-                  <Box sx={{ my: 4 }}>
-                    <ConfigPanel />
-                    <ResetButton />
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        gap: 2,
-                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
-                        gridTemplateRows: '1fr 1fr',
-                        alignItems: 'stretch',
-                        justifyItems: 'stretch',
-                        mt: 2,
-                      }}
-                    >
-                      <PlannerAgent />
-                      <ResearchAgent />
-                      <WriterAgent />
-                      <ReviewerAgent />
-                    </Box>
-                    <AgentFlowGraph />
-                    <CollapsibleTimeline />
-                  </Box>
-                </Container>
+                <AppInfo />
+                <ConfigPanel />
+                <ResetButton />
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gap: 2,
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gridTemplateRows: '1fr 1fr',
+                    alignItems: 'stretch',
+                    justifyItems: 'stretch',
+                    mt: 2,
+                  }}
+                >
+                  <PlannerAgent />
+                  <ResearchAgent />
+                  <WriterAgent />
+                  <ReviewerAgent />
+                </Box>
+                <AgentFlowGraph />
+                <CollapsibleTimeline />
               </Box>
             </Box>
           </AgentBusProvider>
