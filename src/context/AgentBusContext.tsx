@@ -51,12 +51,10 @@ const AgentBusProvider = ({ children }: { children: React.ReactNode }) => {
 
   const subscribeToLog = useCallback((cb: (messages: Message[]) => void) => {
     logListeners.current.push(cb);
-    // Immediately call with current log
-    cb(messages);
     return () => {
       logListeners.current = logListeners.current.filter(fn => fn !== cb);
     };
-  }, [messages]);
+  }, []);
 
   const value = useMemo(() => ({
     emit,

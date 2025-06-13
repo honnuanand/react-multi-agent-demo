@@ -33,7 +33,7 @@ function groupMessagesByFlow(messages: Message[]) {
 }
 
 export function CollapsibleTimeline() {
-  const { subscribeToLog } = useAgentBus();
+  const { subscribeToLog, messages } = useAgentBus();
   const [log, setLog] = useState<Message[]>([]);
   const [open, setOpen] = useState(true);
   const [expandedGroups, setExpandedGroups] = useState<Record<number, boolean>>({ 0: true });
@@ -41,8 +41,9 @@ export function CollapsibleTimeline() {
 
   useEffect(() => {
     const unsub = subscribeToLog(setLog);
+    setLog(messages);
     return () => unsub();
-  }, [subscribeToLog]);
+  }, [subscribeToLog, messages]);
 
   const groups = groupMessagesByFlow(log);
 

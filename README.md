@@ -1,6 +1,6 @@
-# 🤖 React Multi-Agent Demo
+# 🤖 React Multi-Agent Collaboration Demo
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/honnuanand/react-multi-agent-demo/main.yml?branch=main)](https://github.com/honnuanand/react-multi-agent-demo/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/honnuanand/react-multi-agent-demo/gh-pages.yml?branch=main&label=Deploy%20to%20GitHub%20Pages)](https://github.com/honnuanand/react-multi-agent-demo/actions)
 [![License](https://img.shields.io/github/license/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/blob/main/LICENSE)
 [![Stars](https://img.shields.io/github/stars/honnuanand/react-multi-agent-demo?style=social)](https://github.com/honnuanand/react-multi-agent-demo/stargazers)
 [![Issues](https://img.shields.io/github/issues/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/issues)
@@ -8,61 +8,116 @@
 [![Last Commit](https://img.shields.io/github/last-commit/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/commits/main)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Click%20Here-blue?logo=githubpages&style=for-the-badge)](https://honnuanand.github.io/react-multi-agent-demo/)
 
-This React + Vite application simulates a **multi-agent AI system** where individual agents collaborate in a workflow using OpenAI-like logic. Each agent is isolated, yet they communicate via a shared **message bus** (similar to the Model Communication Protocol - MCP).
+---
+
+## 🌟 Purpose
+
+**React Multi-Agent Collaboration Demo** is a modern, interactive web app that demonstrates how multiple AI agents can collaborate in real time to solve complex tasks—each powered by a different LLM provider (OpenAI, Anthropic, Databricks, etc). The app is designed for:
+
+- **Developers & Researchers** exploring agentic workflows and multi-LLM orchestration
+- **Product teams** evaluating multi-agent, multi-provider AI architectures
+- **Educators & Demo use** to showcase distributed AI, message buses, and LLM monitoring
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-### 🌐 UI & Framework
-- Built with **React + TypeScript + Vite**
-- Uses **MUI (Material UI)** for polished UI components
-- Modular component-based structure with scoped responsibilities
-
-### 🧠 Agents
-Each agent performs a role in a simple chain-of-thought pipeline:
-1. **PlannerAgent** - Takes user input and initiates the plan
-2. **ResearchAgent** - Gathers contextual data based on the plan
-3. **WriterAgent** - Generates content from research
-4. **ReviewerAgent** - Finalizes and reviews the output
-
-### 🪄 Inter-Agent Communication
-Agents use a **central event bus (`AgentBusContext`)** to emit and subscribe to messages. This mimics message-based coordination in agentic architectures.
-
-### 🔄 Reset System
-You can reset the entire agent flow using the **Reset button** in the Config panel. This clears all agent states, the timeline, and the React Flow graph.
-
-### 🧭 Layout Features
-- **AppBar and Navigation Drawer** for tiered views
-- **Tier 1 (Basic Flow)** available
-- Placeholder tiers for:
-  - Feedback Loop
-  - Plugin System
-  - Dynamic Graphs
-
-### 🔧 Visualizations
-- Message timeline (events & messages displayed chronologically)
-- React Flow-based collaboration graphs
-- Multi-tier enhancements
+- **Multi-Agent Collaboration:** Planner, Researcher, Writer, Reviewer, HTML, and PDF agents work together via a message bus
+- **Multi-LLM Support:** Assign a different LLM provider (OpenAI, Anthropic, Databricks) to each agent, with per-provider API keys and models
+- **Real-Time Visualization:** See agent interactions in a 2x2 grid and a live flow graph
+- **LLM Monitoring:** Right-side drawer shows all LLM requests/responses, grouped by agent and session
+- **Dynamic Configuration:** Configure LLMs and assign them to agents on the fly
+- **Optional Output Agents:** Generate and preview HTML or PDF outputs using LLMs
+- **Robust Error Logging:** All errors are surfaced in a global Snackbar for easy debugging
+- **Modern UI/UX:** Responsive, MUI-based design with clear navigation, drawers, and section titles
 
 ---
 
-## 🛠️ Installation & Running Locally
+## 🖥️ App Modes
 
-```bash
-# Install dependencies
-npm install
+### 1. **Single LLM Agent**
+- All agents use the same LLM provider (e.g., OpenAI)
+- Simple, streamlined workflow for basic demos
 
-# Run the app
-npm start
-```
-
-## 📝 Notes
-- The app uses Vite for fast development and building
-- Material UI components are used for the interface
-- The app demonstrates a simple multi-agent system with message-based communication
-- Reviewer→Writer edge in the flow graph animates while Writer is processing feedback, and becomes solid when done
+### 2. **Multi-LLM Agent Flow**
+- Each agent can use a different LLM provider and model
+- Great for comparing LLMs or building advanced agentic flows
 
 ---
 
-[View on GitHub](https://github.com/honnuanand/react-multi-agent-demo) 
+## 🧑‍💻 How to Use
+
+1. **Clone & Install**
+   ```bash
+   git clone https://github.com/honnuanand/react-multi-agent-demo.git
+   cd react-multi-agent-demo
+   npm install
+   ```
+2. **Start the App**
+   ```bash
+   npm start
+   # or
+   npm run dev
+   ```
+3. **Configure LLM Providers**
+   - Open the left drawer (Config Panel)
+   - Enter API keys and models for OpenAI, Anthropic, Databricks, etc.
+   - Assign LLMs to each agent (in Multi-LLM mode)
+4. **Enter a Goal**
+   - Type your article topic or requirements in the Goal section
+5. **Run the Workflow**
+   - Click "Generate Article Plan" to start
+   - Watch agents collaborate in real time
+   - View LLM interactions in the right drawer
+6. **Optional Outputs**
+   - Trigger HTML or PDF agents for formatted outputs
+   - Preview or download results
+7. **Reset**
+   - Use the Reset button to clear all states and start over
+
+---
+
+## 📊 Architecture Overview
+
+- **React + TypeScript + Vite** for fast, modern development
+- **Material UI (MUI)** for a polished, responsive interface
+- **AgentBusContext:** Central event/message bus for agent communication
+- **ConfigContext:** Manages LLM provider settings and agent assignments
+- **ResetContext:** Global reset mechanism for all components
+- **AgentLLMDrawer:** Monitors and displays all LLM requests/responses
+- **Error Logging:** All errors are captured and shown in a persistent Snackbar
+
+---
+
+## 📝 Notes & Tips
+- The app is demo-ready and suitable for both local and GitHub Pages deployment
+- All LLM API keys are stored in-memory (never sent to a backend)
+- Supports both desktop and mobile layouts
+- For best results, use valid API keys for each LLM provider
+- The flow graph and agent grid update live as agents communicate
+
+---
+
+## 📦 Project Structure
+
+- `src/agents/` — Agent components (Planner, Researcher, Writer, Reviewer, HTML, PDF)
+- `src/components/` — UI components (AppInfo, ConfigPanel, AgentLLMDrawer, etc.)
+- `src/context/` — React contexts for config, agent bus, and reset
+- `src/` — Main app entry and layout
+
+---
+
+## 🙏 Acknowledgements
+- Built with [React](https://react.dev/), [Vite](https://vitejs.dev/), and [Material UI](https://mui.com/)
+- Inspired by modern agentic AI architectures and LLM orchestration research
+
+---
+
+## Planned Changes
+
+- Implement unified LLM service to support Anthropic, Databricks, and other providers for true multi-LLM agent support.
+
+---
+
+[View on GitHub](https://github.com/honnuanand/react-multi-agent-demo)
+[Live Demo](https://honnuanand.github.io/react-multi-agent-demo/) 

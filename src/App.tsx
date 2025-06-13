@@ -8,7 +8,7 @@ import { ReviewerAgent } from "./agents/ReviewerAgent";
 import { CollapsibleTimeline } from './components/Timeline';
 import { AgentGraph } from "./components/AgentGraph";
 import { ResetProvider } from "./context/ResetContext";
-import { AgentBusProvider } from "./context/AgentBusContext";
+import { AgentBusProvider, useAgentBus } from "./context/AgentBusContext";
 import { ConfigProvider } from './context/ConfigContext';
 import { AgentFlowGraph } from './components/AgentFlowGraph';
 import { ResetButton } from "./components/ResetButton";
@@ -23,6 +23,10 @@ import { HtmlAgent } from "./agents/HtmlAgent";
 import { PdfAgent } from "./agents/PdfAgent";
 import { AgentLLMDrawer } from './components/AgentLLMDrawer';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import Badge from '@mui/material/Badge';
+import { styled, keyframes } from '@mui/material/styles';
+import { useReset } from './context/ResetContext';
+import { ErrorLogProvider, useErrorLog } from './context/ErrorLogContext';
 
 const drawerWidth = 240;
 
@@ -38,30 +42,85 @@ const theme = createTheme({
   },
 });
 
-// Error context for global error logging
-const ErrorLogContext = createContext<(msg: string) => void>(() => {});
-export const useErrorLog = () => useContext(ErrorLogContext);
+// --- LLMDrawerButton component ---
+function LLMDrawerButton({ onOpen, drawerOpen, buttonRef }: { onOpen: () => void, drawerOpen: boolean, buttonRef: React.Ref<HTMLButtonElement> }) {
+  const [llmTooltipOpen, setLLMTooltipOpen] = React.useState(true);
+  const [unseenLLM, setUnseenLLM] = React.useState(false);
+  const { messages } = useAgentBus();
+  const { resetSignal } = useReset();
 
-function ErrorLogProvider({ children }: { children: ReactNode }) {
-  const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
+  // Only LLM request/response messages
+  const llmMessages = messages?.filter(
+    (m) => m.type === 'llm_request' || m.type === 'llm_response'
+  ) || [];
 
-  const logError = (msg: string) => {
-    setError(msg);
-    setOpen(true);
-  };
+  // Track unseen LLM interactions
+  React.useEffect(() => {
+    if (!drawerOpen && llmMessages.length > 0) {
+      setUnseenLLM(true);
+    }
+  }, [llmMessages.length, drawerOpen]);
 
-  const handleClose = () => setOpen(false);
+  // When drawer is opened, mark as seen and hide tooltip
+  React.useEffect(() => {
+    if (drawerOpen) {
+      setUnseenLLM(false);
+      setLLMTooltipOpen(false);
+    }
+  }, [drawerOpen]);
+
+  // Show tooltip again on reset
+  React.useEffect(() => {
+    setLLMTooltipOpen(true);
+  }, [resetSignal]);
+
+  // Pulse animation for the button using sx and keyframes
+  const pulse = keyframes`
+    0% {
+      box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 12px rgba(25, 118, 210, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(25, 118, 210, 0);
+    }
+  `;
 
   return (
-    <ErrorLogContext.Provider value={logError}>
-      {children}
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-          {error}
-        </Alert>
-      </Snackbar>
-    </ErrorLogContext.Provider>
+    <Tooltip
+      title="See all LLM prompts & responses here!"
+      open={llmTooltipOpen && unseenLLM}
+      onClose={() => setLLMTooltipOpen(false)}
+      disableFocusListener
+      disableHoverListener={!unseenLLM}
+      disableTouchListener={!unseenLLM}
+      arrow
+    >
+      <span>
+        <Badge
+          color="error"
+          variant={unseenLLM ? 'dot' : undefined}
+          overlap="circular"
+          sx={{ mr: 1 }}
+        >
+          <IconButton
+            color="inherit"
+            onClick={onOpen}
+            ref={buttonRef}
+            sx={unseenLLM ? {
+              animation: `${pulse} 1.5s infinite`,
+              borderRadius: '50%',
+              position: 'relative',
+              zIndex: 2,
+              boxShadow: '0 0 0 0 rgba(25, 118, 210, 0.7)',
+            } : {}}
+          >
+            <MenuOpenIcon />
+          </IconButton>
+        </Badge>
+      </span>
+    </Tooltip>
   );
 }
 
@@ -69,6 +128,7 @@ export default function App() {
   const [selectedExample, setSelectedExample] = useState("Single LLM Agent");
   const [navOpen, setNavOpen] = useState(false);
   const [llmDrawerOpen, setLLMDrawerOpen] = useState(false);
+  const llmButtonRef = React.useRef<HTMLButtonElement>(null);
 
   const handleNavToggle = () => {
     setNavOpen((open) => !open);
@@ -122,11 +182,7 @@ export default function App() {
                     <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                       AI Agent Collaboration
                     </Typography>
-                    <Tooltip title="Agent LLM Interactions">
-                      <IconButton color="inherit" onClick={() => setLLMDrawerOpen(true)}>
-                        <MenuOpenIcon />
-                      </IconButton>
-                    </Tooltip>
+                    <LLMDrawerButton onOpen={() => setLLMDrawerOpen(true)} drawerOpen={llmDrawerOpen} buttonRef={llmButtonRef} />
                     <Tooltip title="View on GitHub">
                       <IconButton
                         color="inherit"
@@ -178,7 +234,7 @@ export default function App() {
                         >
                           <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
                           <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
-                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233', width: 350, minHeight: 180 }} />
                           <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
                         </Box>
                       </Box>
@@ -190,17 +246,39 @@ export default function App() {
                             display: 'grid',
                             gap: 2,
                             gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                            gridTemplateRows: '1fr 1fr',
+                            gridTemplateRows: { xs: 'repeat(4, auto)', md: '1fr 1fr auto' },
                             alignItems: 'stretch',
                             justifyItems: 'stretch',
                           }}
                         >
+                          {/* Row 1 */}
                           <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
                           <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
-                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
-                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
-                          <HtmlAgent sx={{ boxShadow: '8px 0 24px -8px #ff980033, 0 8px 24px -8px #ff980033' }} />
-                          <PdfAgent sx={{ boxShadow: '-8px 0 24px -8px #e5393533, 0 8px 24px -8px #e5393533' }} />
+                          {/* Row 2 */}
+                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233', width: 350, minHeight: 180, gridColumn: { xs: '1', md: '1' }, gridRow: { xs: '3', md: '2' } }} />
+                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733', gridColumn: { xs: '1', md: '2' }, gridRow: { xs: '4', md: '2' } }} />
+                          {/* Row 3: HTML/PDF group below Writer */}
+                          <Box
+                            sx={{
+                              gridColumn: { xs: '1', md: '1' },
+                              gridRow: { xs: '5', md: '3' },
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 2,
+                              p: 2,
+                              bgcolor: '#f5f5f5',
+                              border: '2px solid #e3f2fd',
+                              borderRadius: 2,
+                              boxShadow: 2,
+                              alignItems: 'stretch',
+                              justifyContent: 'flex-start',
+                              maxWidth: '100%',
+                              width: '100%',
+                            }}
+                          >
+                            <HtmlAgent sx={{}} />
+                            <PdfAgent sx={{}} />
+                          </Box>
                         </Box>
                       </Box>
                     )}
@@ -210,14 +288,19 @@ export default function App() {
                     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                       Live Agent Flow
                     </Typography>
-                    <AgentFlowGraph />
+                    <AgentFlowGraph advancedMode={selectedExample === "Multi-LLM Agent Flow"} />
                   </Paper>
                   {/* Timeline Section with Paper */}
                   <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
                     <CollapsibleTimeline />
                   </Paper>
                 </Box>
-                <AgentLLMDrawer open={llmDrawerOpen} onClose={() => setLLMDrawerOpen(false)} />
+                <AgentLLMDrawer open={llmDrawerOpen} onClose={() => {
+                  setLLMDrawerOpen(false);
+                  setTimeout(() => {
+                    llmButtonRef.current?.focus();
+                  }, 0);
+                }} />
               </Box>
             </AgentBusProvider>
           </ResetProvider>

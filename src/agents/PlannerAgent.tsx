@@ -6,7 +6,7 @@ import { AgentPanel } from "../components/AgentPanel";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import { callOpenAI, AGENT_PROMPTS, AgentMessage, initializeOpenAI } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
-import { useErrorLog } from '../App';
+import { useErrorLog } from '../context/ErrorLogContext';
 import { useConfig } from '../context/ConfigContext';
 
 const AGENT_COLOR = '#1976d2'; // blue for Planner

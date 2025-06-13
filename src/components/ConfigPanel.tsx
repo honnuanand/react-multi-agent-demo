@@ -122,21 +122,26 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
               Per-Agent LLM Selection
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, px: 3, pb: 3 }}>
-              {AGENTS.map(agent => (
-                <TextField
-                  key={agent.key}
-                  select
-                  label={agent.label}
-                  value={agentLLMs[agent.key]}
-                  onChange={e => setAgentLLM(agent.key, e.target.value as LLMProvider)}
-                  sx={{ minWidth: 180 }}
-                  disabled={configuredProviders.length === 0}
-                >
-                  {configuredProviders.map(p => (
-                    <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
-                  ))}
-                </TextField>
-              ))}
+              {AGENTS.map(agent => {
+                const agentValue = configuredProviders.some(p => p.key === agentLLMs[agent.key])
+                  ? agentLLMs[agent.key]
+                  : '';
+                return (
+                  <TextField
+                    key={agent.key}
+                    select
+                    label={agent.label}
+                    value={agentValue}
+                    onChange={e => setAgentLLM(agent.key, e.target.value as LLMProvider)}
+                    sx={{ minWidth: 180 }}
+                    disabled={configuredProviders.length === 0}
+                  >
+                    {configuredProviders.map(p => (
+                      <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
+                    ))}
+                  </TextField>
+                );
+              })}
             </Box>
           </>
         )}
