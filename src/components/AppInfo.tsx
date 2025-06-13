@@ -4,11 +4,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
-const BUSINESS_PURPOSE = `
-This system helps you write a detailed, high-quality article on any topic. Just enter your needs or topic in the Goal section, and our AI agents will plan, research, write, and review the article for you—automatically!
-
-
-This demo showcases a true multi-agent system: each agent (Planner, Researcher, Writer, Reviewer) is a real, independent process connected to a large language model (LLM). Agents communicate and coordinate by sending messages through a shared event bus, just like in modern distributed AI architectures.`;
+const BUSINESS_PURPOSE_1 = `This system helps you write a detailed, high-quality article on any topic. Just enter your needs or topic in the Goal section, and our AI agents will plan, research, write, and review the article for you—automatically!`;
+const BUSINESS_PURPOSE_2 = `This demo showcases a true multi-agent system: each agent (Planner, Researcher, Writer, Reviewer) is a real, independent process connected to a large language model (LLM). Agents communicate and coordinate by sending messages through a shared event bus, just like in modern distributed AI architectures.`;
 
 const INSTRUCTIONS = [
   'Enter your OpenAI API key in the Configuration box.',
@@ -41,8 +38,11 @@ export function AppInfo() {
       <Typography variant="h6" sx={{ mb: 1, fontWeight: 600, color: 'primary.dark' }}>
         🚀 Business Purpose
       </Typography>
+      <Typography variant="body1" sx={{ mb: 2, fontSize: 18, color: 'text.primary' }}>
+        {BUSINESS_PURPOSE_1}
+      </Typography>
       <Typography variant="body1" sx={{ mb: 3, fontSize: 18, color: 'text.primary' }}>
-        {BUSINESS_PURPOSE}
+        {BUSINESS_PURPOSE_2}
       </Typography>
       <Box display="flex" alignItems="center" mb={1}>
         <HelpOutlineIcon color="secondary" sx={{ mr: 1 }} />
