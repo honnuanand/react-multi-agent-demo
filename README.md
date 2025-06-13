@@ -6,6 +6,7 @@
 [![Issues](https://img.shields.io/github/issues/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/issues)
 [![Pull Requests](https://img.shields.io/github/issues-pr/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/pulls)
 [![Last Commit](https://img.shields.io/github/last-commit/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/commits/main)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Click%20Here-blue?logo=githubpages&style=for-the-badge)](https://honnuanand.github.io/react-multi-agent-demo/)
 
 This React + Vite application simulates a **multi-agent AI system** where individual agents collaborate in a workflow using OpenAI-like logic. Each agent is isolated, yet they communicate via a shared **message bus** (similar to the Model Communication Protocol - MCP).
 
