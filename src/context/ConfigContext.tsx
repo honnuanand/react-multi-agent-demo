@@ -1,50 +1,45 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { initializeOpenAI } from '../services/openai';
 
 interface ConfigContextType {
-  openaiApiKey: string;
-  setOpenaiApiKey: (key: string) => void;
+  apiKey: string;
+  setApiKey: (key: string) => void;
+  model: string;
+  setModel: (model: string) => void;
 }
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
 
-interface ConfigProviderProps {
-  children: ReactNode;
-}
+export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [apiKey, setApiKey] = useState('');
+  const [model, setModel] = useState('gpt-4');
 
-export function ConfigProvider({ children }: ConfigProviderProps) {
-  const [openaiApiKey, setOpenaiApiKey] = useState<string>(() => {
-    // Try to load from localStorage
-    return localStorage.getItem('openaiApiKey') || '';
-  });
+  const handleSetApiKey = useCallback((key: string) => {
+    setApiKey(key);
+  }, []);
 
-  // Initialize OpenAI client when loading a saved API key
-  useEffect(() => {
-    if (openaiApiKey) {
-      try {
-        initializeOpenAI(openaiApiKey);
-      } catch (error) {
-        console.error('Failed to initialize OpenAI client:', error);
-      }
-    }
-  }, []); // Only run once on mount
+  const handleSetModel = useCallback((newModel: string) => {
+    setModel(newModel);
+  }, []);
 
-  const handleSetApiKey = (key: string) => {
-    setOpenaiApiKey(key);
-    localStorage.setItem('openaiApiKey', key);
-  };
+  const value = useMemo(() => ({
+    apiKey,
+    setApiKey: handleSetApiKey,
+    model,
+    setModel: handleSetModel
+  }), [apiKey, handleSetApiKey, model, handleSetModel]);
 
   return (
-    <ConfigContext.Provider value={{ openaiApiKey, setOpenaiApiKey: handleSetApiKey }}>
+    <ConfigContext.Provider value={value}>
       {children}
     </ConfigContext.Provider>
   );
-}
+};
 
-export function useConfig() {
+export const useConfig = () => {
   const context = useContext(ConfigContext);
   if (!context) {
     throw new Error('useConfig must be used within a ConfigProvider');
   }
   return context;
-} 
+}; 

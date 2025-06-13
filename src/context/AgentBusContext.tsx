@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef, useState, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { useReset } from "./ResetContext";
 
 export interface Message {
@@ -20,7 +20,7 @@ interface AgentBusContextType {
 
 const AgentBusContext = createContext<AgentBusContextType | null>(null);
 
-export function AgentBusProvider({ children }: { children: React.ReactNode }) {
+export const AgentBusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { resetSignal } = useReset();
   const listeners = useRef<{ [key: string]: ((message: Message) => void)[] }>({});
   const logListeners = useRef<((messages: Message[]) => void)[]>([]);
@@ -31,22 +31,22 @@ export function AgentBusProvider({ children }: { children: React.ReactNode }) {
     setMessages([]);
   }, [resetSignal]);
 
-  const emit = (event: string, message: Message) => {
+  const emit = useCallback((event: string, message: Message) => {
     setMessages((prev) => {
       const updated = [...prev, message];
       logListeners.current.forEach((cb) => cb(updated));
       return updated;
     });
     (listeners.current[event] || []).forEach((cb) => cb(message));
-  };
+  }, []);
 
-  const subscribe = (event: string, cb: (message: Message) => void) => {
+  const subscribe = useCallback((event: string, cb: (message: Message) => void) => {
     listeners.current[event] = listeners.current[event] || [];
     listeners.current[event].push(cb);
     return () => {
       listeners.current[event] = listeners.current[event].filter(fn => fn !== cb);
     };
-  };
+  }, []);
 
   const subscribeToLog = useCallback((cb: (messages: Message[]) => void) => {
     logListeners.current.push(cb);
@@ -57,17 +57,26 @@ export function AgentBusProvider({ children }: { children: React.ReactNode }) {
     };
   }, [messages]);
 
+  const value = useMemo(() => ({
+    emit,
+    subscribe,
+    activeAgent,
+    setActiveAgent,
+    messages,
+    subscribeToLog
+  }), [emit, subscribe, activeAgent, messages, subscribeToLog]);
+
   return (
-    <AgentBusContext.Provider value={{ emit, subscribe, activeAgent, setActiveAgent, messages, subscribeToLog }}>
+    <AgentBusContext.Provider value={value}>
       {children}
     </AgentBusContext.Provider>
   );
-}
+};
 
-export function useAgentBus() {
+export const useAgentBus = () => {
   const context = useContext(AgentBusContext);
   if (!context) {
     throw new Error('useAgentBus must be used within an AgentBusProvider');
   }
   return context;
-}
+};
