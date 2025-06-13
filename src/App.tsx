@@ -224,18 +224,20 @@ export default function App() {
                       <Box sx={{ position: 'relative', mb: 2 }}>
                         <Box
                           sx={{
-                            display: 'grid',
-                            gap: 2,
-                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                            gridTemplateRows: '1fr 1fr',
+                            display: { xs: 'block', md: 'flex' },
+                            gap: 3,
                             alignItems: 'stretch',
-                            justifyItems: 'stretch',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            width: '100%',
+                            maxWidth: 1800,
+                            mx: 'auto',
                           }}
                         >
-                          <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
-                          <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
-                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233', width: 350, minHeight: 180 }} />
-                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                          <PlannerAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
+                          <ResearchAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
+                          <WriterAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                          <ReviewerAgent sx={{ width: { xs: '100%', md: 420 }, minHeight: 220, flex: '1 1 0', boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
                         </Box>
                       </Box>
                     )}
