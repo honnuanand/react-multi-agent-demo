@@ -7,7 +7,7 @@ interface ResetContextType {
 
 const ResetContext = createContext<ResetContextType | null>(null);
 
-export const ResetProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ResetProvider = ({ children }: { children: React.ReactNode }) => {
   const [resetSignal, setResetSignal] = useState(0);
 
   const triggerReset = useCallback(() => {
@@ -26,10 +26,12 @@ export const ResetProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-export const useReset = () => {
+const useReset = () => {
   const context = useContext(ResetContext);
   if (!context) {
     throw new Error('useReset must be used within a ResetProvider');
   }
   return context;
 };
+
+export { ResetProvider, useReset };

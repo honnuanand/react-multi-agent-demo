@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { initializeOpenAI } from '../services/openai';
 
 interface ConfigContextType {
   apiKey: string;
@@ -10,7 +9,7 @@ interface ConfigContextType {
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
 
-export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
   const [apiKey, setApiKey] = useState('');
   const [model, setModel] = useState('gpt-4');
 
@@ -36,10 +35,12 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   );
 };
 
-export const useConfig = () => {
+const useConfig = () => {
   const context = useContext(ConfigContext);
   if (!context) {
     throw new Error('useConfig must be used within a ConfigProvider');
   }
   return context;
-}; 
+};
+
+export { ConfigProvider, useConfig }; 

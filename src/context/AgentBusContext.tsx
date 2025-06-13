@@ -20,7 +20,7 @@ interface AgentBusContextType {
 
 const AgentBusContext = createContext<AgentBusContextType | null>(null);
 
-export const AgentBusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const AgentBusProvider = ({ children }: { children: React.ReactNode }) => {
   const { resetSignal } = useReset();
   const listeners = useRef<{ [key: string]: ((message: Message) => void)[] }>({});
   const logListeners = useRef<((messages: Message[]) => void)[]>([]);
@@ -73,10 +73,12 @@ export const AgentBusProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
-export const useAgentBus = () => {
+const useAgentBus = () => {
   const context = useContext(AgentBusContext);
   if (!context) {
     throw new Error('useAgentBus must be used within an AgentBusProvider');
   }
   return context;
 };
+
+export { AgentBusProvider, useAgentBus };
