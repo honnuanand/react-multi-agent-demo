@@ -1,4 +1,11 @@
-# 🤖 AI Agent Collaboration App
+# 🤖 React Multi-Agent Demo
+
+[![Build Status](https://img.shields.io/github/actions/workflow/status/honnuanand/react-multi-agent-demo/main.yml?branch=main)](https://github.com/honnuanand/react-multi-agent-demo/actions)
+[![License](https://img.shields.io/github/license/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/blob/main/LICENSE)
+[![Stars](https://img.shields.io/github/stars/honnuanand/react-multi-agent-demo?style=social)](https://github.com/honnuanand/react-multi-agent-demo/stargazers)
+[![Issues](https://img.shields.io/github/issues/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/issues)
+[![Pull Requests](https://img.shields.io/github/issues-pr/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/pulls)
+[![Last Commit](https://img.shields.io/github/last-commit/honnuanand/react-multi-agent-demo)](https://github.com/honnuanand/react-multi-agent-demo/commits/main)
 
 This React + Vite application simulates a **multi-agent AI system** where individual agents collaborate in a workflow using OpenAI-like logic. Each agent is isolated, yet they communicate via a shared **message bus** (similar to the Model Communication Protocol - MCP).
 
@@ -22,7 +29,7 @@ Each agent performs a role in a simple chain-of-thought pipeline:
 Agents use a **central event bus (`AgentBusContext`)** to emit and subscribe to messages. This mimics message-based coordination in agentic architectures.
 
 ### 🔄 Reset System
-You can reset the entire agent flow using the **Reset button** in the Config panel.
+You can reset the entire agent flow using the **Reset button** in the Config panel. This clears all agent states, the timeline, and the React Flow graph.
 
 ### 🧭 Layout Features
 - **AppBar and Navigation Drawer** for tiered views
@@ -32,7 +39,7 @@ You can reset the entire agent flow using the **Reset button** in the Config pan
   - Plugin System
   - Dynamic Graphs
 
-### 🔧 Upcoming Visualizations
+### 🔧 Visualizations
 - Message timeline (events & messages displayed chronologically)
 - React Flow-based collaboration graphs
 - Multi-tier enhancements
@@ -52,4 +59,9 @@ npm start
 ## 📝 Notes
 - The app uses Vite for fast development and building
 - Material UI components are used for the interface
-- The app demonstrates a simple multi-agent system with message-based communication 
+- The app demonstrates a simple multi-agent system with message-based communication
+- Reviewer→Writer edge in the flow graph animates while Writer is processing feedback, and becomes solid when done
+
+---
+
+[View on GitHub](https://github.com/honnuanand/react-multi-agent-demo) 
