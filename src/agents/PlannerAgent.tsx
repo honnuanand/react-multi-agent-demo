@@ -9,7 +9,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 
 const AGENT_COLOR = '#1976d2'; // blue for Planner
 
-export function PlannerAgent() {
+export function PlannerAgent(props: { sx?: object }) {
   const [input, setInput] = useState("Build a product demo");
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +49,7 @@ export function PlannerAgent() {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Planner Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<AssignmentIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : plan ? 'done' : 'idle'}>
+    <AgentPanel title="Planner Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<AssignmentIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : plan ? 'done' : 'idle'} sx={props.sx}>
       <TextField
         label="Goal"
         fullWidth

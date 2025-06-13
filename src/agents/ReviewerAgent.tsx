@@ -9,7 +9,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 
 const AGENT_COLOR = '#43a047'; // green for Reviewer
 
-export function ReviewerAgent() {
+export function ReviewerAgent(props: { sx?: object }) {
   const [feedback, setFeedback] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -50,7 +50,7 @@ export function ReviewerAgent() {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Reviewer Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<RateReviewIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : feedback ? 'done' : 'idle'}>
+    <AgentPanel title="Reviewer Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<RateReviewIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : feedback ? 'done' : 'idle'} sx={props.sx}>
       {isLoading ? (
         <CircularProgress size={24} />
       ) : (

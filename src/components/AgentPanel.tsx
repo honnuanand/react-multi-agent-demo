@@ -10,7 +10,7 @@ const STATE_COLORS: Record<string, string> = {
   error: '#e53935',
 };
 
-export function AgentPanel({ title, collapsed, setCollapsed, children, icon, color = '#1976d2', state = 'idle' }: {
+export function AgentPanel({ title, collapsed, setCollapsed, children, icon, color = '#1976d2', state = 'idle', sx }: {
   title: string;
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
@@ -18,9 +18,10 @@ export function AgentPanel({ title, collapsed, setCollapsed, children, icon, col
   icon: ReactNode;
   color?: string;
   state?: 'idle' | 'loading' | 'done' | 'error' | string;
+  sx?: object;
 }) {
   return (
-    <Paper elevation={3} sx={{ width: 350, p: 2, borderTop: `6px solid ${color}` }}>
+    <Paper elevation={3} sx={{ width: 350, p: 2, borderTop: `6px solid ${color}`, ...sx }}>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }} onClick={() => setCollapsed(!collapsed)}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <span style={{

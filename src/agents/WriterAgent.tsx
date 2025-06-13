@@ -10,7 +10,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 // Color and state indicator for future UI enhancements
 const AGENT_COLOR = '#7b1fa2'; // purple for Writer
 
-export function WriterAgent() {
+export function WriterAgent(props: { sx?: object }) {
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -76,7 +76,7 @@ export function WriterAgent() {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Writer Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<CreateIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : content ? 'done' : 'idle'}>
+    <AgentPanel title="Writer Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<CreateIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : content ? 'done' : 'idle'} sx={props.sx}>
       {isLoading ? (
         <CircularProgress size={24} />
       ) : (

@@ -9,7 +9,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 
 const AGENT_COLOR = '#0288d1'; // cyan for Researcher
 
-export function ResearchAgent() {
+export function ResearchAgent(props: { sx?: object }) {
   const [task, setTask] = useState("");
   const [research, setResearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,7 +53,7 @@ export function ResearchAgent() {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Research Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<SearchIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : research ? 'done' : 'idle'}>
+    <AgentPanel title="Research Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<SearchIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : research ? 'done' : 'idle'} sx={props.sx}>
       {isLoading ? (
         <CircularProgress size={24} />
       ) : (

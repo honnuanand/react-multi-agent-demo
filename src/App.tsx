@@ -144,10 +144,14 @@ export default function App() {
                           justifyItems: 'stretch',
                         }}
                       >
-                        <PlannerAgent />
-                        <ResearchAgent />
-                        <WriterAgent />
-                        <ReviewerAgent />
+                        {/* Planner: right and bottom shadow */}
+                        <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
+                        {/* Researcher: left and bottom shadow */}
+                        <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
+                        {/* Writer: right and top shadow */}
+                        <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                        {/* Reviewer: left and top shadow */}
+                        <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
                       </Box>
                     </Box>
                   )}
