@@ -26,7 +26,25 @@ export function WriterAgent(props: { sx?: object }) {
           { role: 'system', content: AGENT_PROMPTS.writer },
           { role: 'user', content: `Create content based on this research: ${msg.content}` }
         ];
+        // Emit LLM request event
+        emit("llm_request", {
+          sender: "WriterAgent",
+          receiver: "LLM",
+          type: "llm_request",
+          content: '',
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         const generatedContent = await callOpenAI(messages);
+        // Emit LLM response event
+        emit("llm_response", {
+          sender: "WriterAgent",
+          receiver: "LLM",
+          type: "llm_response",
+          content: generatedContent,
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         setContent(generatedContent);
         emit("draftReady", {
           sender: "WriterAgent",
@@ -53,7 +71,25 @@ export function WriterAgent(props: { sx?: object }) {
           { role: 'system', content: AGENT_PROMPTS.writer },
           { role: 'user', content: `Revise the following content based on this feedback: ${msg.content}\n\nOriginal content: ${content}` }
         ];
+        // Emit LLM request event
+        emit("llm_request", {
+          sender: "WriterAgent",
+          receiver: "LLM",
+          type: "llm_request",
+          content: '',
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         const revisedContent = await callOpenAI(messages);
+        // Emit LLM response event
+        emit("llm_response", {
+          sender: "WriterAgent",
+          receiver: "LLM",
+          type: "llm_response",
+          content: revisedContent,
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         setContent(revisedContent);
         emit("rewriteComplete", {
           sender: "WriterAgent",

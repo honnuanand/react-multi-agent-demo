@@ -7,6 +7,7 @@ export interface Message {
   type: string;
   content: string;
   timestamp: string;
+  prompt?: any; // Optional, for LLM request messages
 }
 
 interface AgentBusContextType {

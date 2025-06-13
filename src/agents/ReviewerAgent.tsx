@@ -24,8 +24,25 @@ export function ReviewerAgent(props: { sx?: object }) {
           { role: 'system', content: AGENT_PROMPTS.reviewer },
           { role: 'user', content: `Review this content: ${msg.content}` }
         ];
-
+        // Emit LLM request event
+        emit("llm_request", {
+          sender: "ReviewerAgent",
+          receiver: "LLM",
+          type: "llm_request",
+          content: '',
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         const reviewFeedback = await callOpenAI(messages);
+        // Emit LLM response event
+        emit("llm_response", {
+          sender: "ReviewerAgent",
+          receiver: "LLM",
+          type: "llm_response",
+          content: reviewFeedback,
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
         setFeedback(reviewFeedback);
         
         emit("reviewComplete", {

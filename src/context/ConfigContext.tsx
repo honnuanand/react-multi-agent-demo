@@ -1,32 +1,68 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
-interface ConfigContextType {
+export type LLMProvider = 'openai' | 'anthropic' | 'databricks';
+export interface LLMConfig {
   apiKey: string;
-  setApiKey: (key: string) => void;
   model: string;
-  setModel: (model: string) => void;
+  apiUrl?: string; // Only for Databricks
 }
+
+export interface MultiLLMConfig {
+  openai: LLMConfig;
+  anthropic: LLMConfig;
+  databricks: LLMConfig;
+}
+
+export interface AgentLLMSelection {
+  PlannerAgent: LLMProvider;
+  ResearchAgent: LLMProvider;
+  WriterAgent: LLMProvider;
+  ReviewerAgent: LLMProvider;
+  HtmlAgent: LLMProvider;
+  PdfAgent: LLMProvider;
+}
+
+interface ConfigContextType {
+  llms: MultiLLMConfig;
+  setLLMConfig: (provider: LLMProvider, config: LLMConfig) => void;
+  agentLLMs: AgentLLMSelection;
+  setAgentLLM: (agent: keyof AgentLLMSelection, provider: LLMProvider) => void;
+}
+
+const defaultLLMConfig: LLMConfig = { apiKey: '', model: '', apiUrl: '' };
+const defaultAgentLLMs: AgentLLMSelection = {
+  PlannerAgent: 'openai',
+  ResearchAgent: 'openai',
+  WriterAgent: 'openai',
+  ReviewerAgent: 'openai',
+  HtmlAgent: 'openai',
+  PdfAgent: 'openai',
+};
 
 const ConfigContext = createContext<ConfigContextType | null>(null);
 
 const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
-  const [apiKey, setApiKey] = useState('');
-  const [model, setModel] = useState('gpt-4');
+  const [llms, setLLMs] = useState<MultiLLMConfig>({
+    openai: { ...defaultLLMConfig, model: 'gpt-4' },
+    anthropic: { ...defaultLLMConfig, model: 'claude-3-opus-20240229' },
+    databricks: { ...defaultLLMConfig, model: 'databricks-dbrx-instruct', apiUrl: '' },
+  });
+  const [agentLLMs, setAgentLLMs] = useState<AgentLLMSelection>(defaultAgentLLMs);
 
-  const handleSetApiKey = useCallback((key: string) => {
-    setApiKey(key);
+  const setLLMConfig = useCallback((provider: LLMProvider, config: LLMConfig) => {
+    setLLMs(prev => ({ ...prev, [provider]: { ...prev[provider], ...config } }));
   }, []);
 
-  const handleSetModel = useCallback((newModel: string) => {
-    setModel(newModel);
+  const setAgentLLM = useCallback((agent: keyof AgentLLMSelection, provider: LLMProvider) => {
+    setAgentLLMs(prev => ({ ...prev, [agent]: provider }));
   }, []);
 
   const value = useMemo(() => ({
-    apiKey,
-    setApiKey: handleSetApiKey,
-    model,
-    setModel: handleSetModel
-  }), [apiKey, handleSetApiKey, model, handleSetModel]);
+    llms,
+    setLLMConfig,
+    agentLLMs,
+    setAgentLLM,
+  }), [llms, setLLMConfig, agentLLMs, setAgentLLM]);
 
   return (
     <ConfigContext.Provider value={value}>

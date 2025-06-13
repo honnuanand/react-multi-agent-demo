@@ -21,6 +21,8 @@ import Paper from '@mui/material/Paper';
 import MenuIcon from '@mui/icons-material/Menu';
 import { HtmlAgent } from "./agents/HtmlAgent";
 import { PdfAgent } from "./agents/PdfAgent";
+import { AgentLLMDrawer } from './components/AgentLLMDrawer';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 
 const drawerWidth = 240;
 
@@ -64,11 +66,12 @@ function ErrorLogProvider({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  const [selectedExample, setSelectedExample] = useState("Tier 1: Basic Flow");
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [selectedExample, setSelectedExample] = useState("Single LLM Agent");
+  const [navOpen, setNavOpen] = useState(false);
+  const [llmDrawerOpen, setLLMDrawerOpen] = useState(false);
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
+  const handleNavToggle = () => {
+    setNavOpen((open) => !open);
   };
 
   const drawerContent = (
@@ -78,16 +81,16 @@ export default function App() {
         <List>
           <ListItem disablePadding>
             <ListItemButton
-              selected={selectedExample === "Tier 1: Basic Flow"}
-              onClick={() => { setSelectedExample("Tier 1: Basic Flow"); setMobileOpen(false); }}
+              selected={selectedExample === "Single LLM Agent"}
+              onClick={() => { setSelectedExample("Single LLM Agent"); setNavOpen(false); }}
             >
-              <ListItemText primary="Tier 1: Basic Flow" />
+              <ListItemText primary="Single LLM Agent" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
             <ListItemButton
               selected={selectedExample === "Multi-LLM Agent Flow"}
-              onClick={() => { setSelectedExample("Multi-LLM Agent Flow"); setMobileOpen(false); }}
+              onClick={() => { setSelectedExample("Multi-LLM Agent Flow"); setNavOpen(false); }}
             >
               <ListItemText primary="Multi-LLM Agent Flow" />
             </ListItemButton>
@@ -111,14 +114,19 @@ export default function App() {
                       color="inherit"
                       aria-label="open drawer"
                       edge="start"
-                      onClick={handleDrawerToggle}
-                      sx={{ mr: 2, display: { sm: 'none' } }}
+                      onClick={handleNavToggle}
+                      sx={{ mr: 2 }}
                     >
                       <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                       AI Agent Collaboration
                     </Typography>
+                    <Tooltip title="Agent LLM Interactions">
+                      <IconButton color="inherit" onClick={() => setLLMDrawerOpen(true)}>
+                        <MenuOpenIcon />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title="View on GitHub">
                       <IconButton
                         color="inherit"
@@ -134,45 +142,29 @@ export default function App() {
                     </Tooltip>
                   </Toolbar>
                 </AppBar>
-                {/* Responsive Drawer */}
                 <Drawer
                   variant="temporary"
-                  open={mobileOpen}
-                  onClose={handleDrawerToggle}
+                  open={navOpen}
+                  onClose={handleNavToggle}
                   ModalProps={{ keepMounted: true }}
                   sx={{
-                    display: { xs: 'block', sm: 'none' },
+                    display: { xs: 'block', sm: 'block' },
                     '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
                   }}
                 >
                   {drawerContent}
                 </Drawer>
-                <Drawer
-                  variant="permanent"
-                  sx={{
-                    display: { xs: 'none', sm: 'block' },
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: {
-                      width: drawerWidth,
-                      boxSizing: "border-box",
-                    },
-                  }}
-                  open
-                >
-                  {drawerContent}
-                </Drawer>
                 <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
                   <Toolbar />
-                  <AppInfo />
-                  <ConfigPanel />
+                  <AppInfo mode={selectedExample === "Multi-LLM Agent Flow" ? "multi" : "single"} />
+                  <ConfigPanel multiLLMMode={selectedExample === "Multi-LLM Agent Flow"} />
                   <ResetButton />
                   {/* Agent Boxes Section with Title and Paper */}
                   <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
                       Agent Collaboration
                     </Typography>
-                    {(selectedExample === "Tier 1: Basic Flow" || selectedExample === "Tier 2: Advanced Flow") && (
+                    {selectedExample === "Single LLM Agent" && (
                       <Box sx={{ position: 'relative', mb: 2 }}>
                         <Box
                           sx={{
@@ -207,10 +199,8 @@ export default function App() {
                           <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
                           <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
                           <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
-                        </Box>
-                        <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
-                          <HtmlAgent sx={{ boxShadow: '0 4px 24px 0 #ff980033', minWidth: 350 }} />
-                          <PdfAgent sx={{ boxShadow: '0 4px 24px 0 #e5393533', minWidth: 350 }} />
+                          <HtmlAgent sx={{ boxShadow: '8px 0 24px -8px #ff980033, 0 8px 24px -8px #ff980033' }} />
+                          <PdfAgent sx={{ boxShadow: '-8px 0 24px -8px #e5393533, 0 8px 24px -8px #e5393533' }} />
                         </Box>
                       </Box>
                     )}
@@ -227,6 +217,7 @@ export default function App() {
                     <CollapsibleTimeline />
                   </Paper>
                 </Box>
+                <AgentLLMDrawer open={llmDrawerOpen} onClose={() => setLLMDrawerOpen(false)} />
               </Box>
             </AgentBusProvider>
           </ResetProvider>

@@ -27,9 +27,29 @@ export function ResearchAgent(props: { sx?: object }) {
           { role: 'user', content: `Research the following plan: ${msg.content}` }
         ];
 
+        // Emit LLM request event
+        emit("llm_request", {
+          sender: "ResearchAgent",
+          receiver: "LLM",
+          type: "llm_request",
+          content: '',
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
+
         const researchResults = await callOpenAI(messages);
         setResearch(researchResults);
         
+        // Emit LLM response event
+        emit("llm_response", {
+          sender: "ResearchAgent",
+          receiver: "LLM",
+          type: "llm_response",
+          content: researchResults,
+          timestamp: new Date().toISOString(),
+          prompt: messages,
+        });
+
         emit("researchReady", {
           sender: "ResearchAgent",
           receiver: "WriterAgent",
