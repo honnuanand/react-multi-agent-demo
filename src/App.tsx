@@ -162,8 +162,12 @@ export default function App() {
                   <AppInfo />
                   <ConfigPanel />
                   <ResetButton />
+                  {/* Agent Boxes Section with Title */}
+                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
+                    Agent Collaboration
+                  </Typography>
                   {selectedExample === "Tier 1: Basic Flow" && (
-                    <Box sx={{ position: 'relative', mt: 2 }}>
+                    <Box sx={{ position: 'relative', mb: 5 }}>
                       <AgentGridConnections />
                       <Box
                         sx={{
@@ -182,6 +186,10 @@ export default function App() {
                       </Box>
                     </Box>
                   )}
+                  {/* React Flow Section with Title */}
+                  <Typography variant="subtitle1" sx={{ mt: 4, mb: 1, fontWeight: 600 }}>
+                    Agent Flow Visualization
+                  </Typography>
                   <AgentFlowGraph />
                   <CollapsibleTimeline />
                 </Box>
