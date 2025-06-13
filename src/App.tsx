@@ -99,12 +99,22 @@ export default function App() {
                 <ConfigPanel />
                 <ResetButton />
                 {selectedExample === "Tier 1: Basic Flow" && (
-                  <>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gap: 2,
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                      gridTemplateRows: '1fr 1fr',
+                      alignItems: 'stretch',
+                      justifyItems: 'stretch',
+                      mt: 2,
+                    }}
+                  >
                     <PlannerAgent />
                     <ResearchAgent />
                     <WriterAgent />
                     <ReviewerAgent />
-                  </>
+                  </Box>
                 )}
                 <AgentFlowGraph />
                 <CollapsibleTimeline />
