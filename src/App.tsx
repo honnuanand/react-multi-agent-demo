@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CssBaseline, AppBar, Box, Toolbar, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, Container, ThemeProvider, createTheme } from "@mui/material";
+import { CssBaseline, AppBar, Box, Toolbar, Typography, Drawer, List, ListItem, ListItemButton, ListItemText, Container, ThemeProvider, createTheme, IconButton } from "@mui/material";
 import { ConfigPanel } from "./components/ConfigPanel";
 import { PlannerAgent } from "./agents/PlannerAgent";
 import { ResearchAgent } from "./agents/ResearchAgent";
@@ -13,6 +13,8 @@ import { ConfigProvider } from './context/ConfigContext';
 import { AgentFlowGraph } from './components/AgentFlowGraph';
 import { ResetButton } from "./components/ResetButton";
 import { AppInfo } from "./components/AppInfo";
+import GitHubIcon from '@mui/icons-material/GitHub';
+import Tooltip from '@mui/material/Tooltip';
 
 const drawerWidth = 240;
 
@@ -40,9 +42,22 @@ export default function App() {
             <Box sx={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <AppBar position="fixed" sx={{ zIndex: 1201 }}>
                 <Toolbar>
-                  <Typography variant="h6" noWrap component="div">
+                  <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
                     AI Agent Collaboration
                   </Typography>
+                  <Tooltip title="View on GitHub">
+                    <IconButton
+                      color="inherit"
+                      component="a"
+                      href="https://github.com/honnuanand/react-multi-agent-demo"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      size="large"
+                      sx={{ ml: 1 }}
+                    >
+                      <GitHubIcon />
+                    </IconButton>
+                  </Tooltip>
                 </Toolbar>
               </AppBar>
               <Drawer
