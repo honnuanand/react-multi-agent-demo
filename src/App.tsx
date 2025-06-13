@@ -19,6 +19,8 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import MenuIcon from '@mui/icons-material/Menu';
+import { HtmlAgent } from "./agents/HtmlAgent";
+import { PdfAgent } from "./agents/PdfAgent";
 
 const drawerWidth = 240;
 
@@ -186,6 +188,29 @@ export default function App() {
                           <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
                           <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
                           <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                        </Box>
+                      </Box>
+                    )}
+                    {selectedExample === "Multi-LLM Agent Flow" && (
+                      <Box sx={{ position: 'relative', mb: 2 }}>
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                            gridTemplateRows: '1fr 1fr',
+                            alignItems: 'stretch',
+                            justifyItems: 'stretch',
+                          }}
+                        >
+                          <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
+                          <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
+                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, mt: 2, flexWrap: 'wrap' }}>
+                          <HtmlAgent sx={{ boxShadow: '0 4px 24px 0 #ff980033', minWidth: 350 }} />
+                          <PdfAgent sx={{ boxShadow: '0 4px 24px 0 #e5393533', minWidth: 350 }} />
                         </Box>
                       </Box>
                     )}
