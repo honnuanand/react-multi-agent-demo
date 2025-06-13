@@ -17,6 +17,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Paper from '@mui/material/Paper';
 
 const drawerWidth = 240;
 
@@ -128,39 +129,42 @@ export default function App() {
                   <AppInfo />
                   <ConfigPanel />
                   <ResetButton />
-                  {/* Agent Boxes Section with Title */}
-                  <Typography variant="subtitle1" sx={{ mt: 2, mb: 1, fontWeight: 600 }}>
-                    Agent Collaboration
-                  </Typography>
-                  {selectedExample === "Tier 1: Basic Flow" && (
-                    <Box sx={{ position: 'relative', mb: 5 }}>
-                      <Box
-                        sx={{
-                          display: 'grid',
-                          gap: 2,
-                          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                          gridTemplateRows: '1fr 1fr',
-                          alignItems: 'stretch',
-                          justifyItems: 'stretch',
-                        }}
-                      >
-                        {/* Planner: right and bottom shadow */}
-                        <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
-                        {/* Researcher: left and bottom shadow */}
-                        <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
-                        {/* Writer: right and top shadow */}
-                        <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
-                        {/* Reviewer: left and top shadow */}
-                        <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                  {/* Agent Boxes Section with Title and Paper */}
+                  <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                      Agent Collaboration
+                    </Typography>
+                    {selectedExample === "Tier 1: Basic Flow" && (
+                      <Box sx={{ position: 'relative', mb: 2 }}>
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                            gridTemplateRows: '1fr 1fr',
+                            alignItems: 'stretch',
+                            justifyItems: 'stretch',
+                          }}
+                        >
+                          <PlannerAgent sx={{ boxShadow: '8px 0 24px -8px #1976d233, 0 8px 24px -8px #1976d233' }} />
+                          <ResearchAgent sx={{ boxShadow: '-8px 0 24px -8px #0288d133, 0 8px 24px -8px #0288d133' }} />
+                          <WriterAgent sx={{ boxShadow: '8px 0 24px -8px #7b1fa233, 0 -8px 24px -8px #7b1fa233' }} />
+                          <ReviewerAgent sx={{ boxShadow: '-8px 0 24px -8px #43a04733, 0 -8px 24px -8px #43a04733' }} />
+                        </Box>
                       </Box>
-                    </Box>
-                  )}
-                  {/* React Flow Section with Title */}
-                  <Typography variant="subtitle1" sx={{ mt: 4, mb: 1, fontWeight: 600 }}>
-                    Agent Flow Visualization
-                  </Typography>
-                  <AgentFlowGraph />
-                  <CollapsibleTimeline />
+                    )}
+                  </Paper>
+                  {/* React Flow Section with Title and Paper */}
+                  <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
+                    <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
+                      Agent Flow Visualization
+                    </Typography>
+                    <AgentFlowGraph />
+                  </Paper>
+                  {/* Timeline Section with Paper */}
+                  <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
+                    <CollapsibleTimeline />
+                  </Paper>
                 </Box>
               </Box>
             </AgentBusProvider>
