@@ -27,8 +27,13 @@ import Badge from '@mui/material/Badge';
 import { styled, keyframes } from '@mui/material/styles';
 import { useReset } from './context/ResetContext';
 import { ErrorLogProvider, useErrorLog } from './context/ErrorLogContext';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import HomeIcon from '@mui/icons-material/Home';
+import LayersIcon from '@mui/icons-material/Layers';
 
 const drawerWidth = 240;
+const miniDrawerWidth = 56;
 
 const theme = createTheme({
   palette: {
@@ -126,9 +131,10 @@ function LLMDrawerButton({ onOpen, drawerOpen, buttonRef }: { onOpen: () => void
 
 export default function App() {
   const [selectedExample, setSelectedExample] = useState("Single LLM Agent");
-  const [navOpen, setNavOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(true);
   const [llmDrawerOpen, setLLMDrawerOpen] = useState(false);
   const llmButtonRef = React.useRef<HTMLButtonElement>(null);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 900;
 
   const handleNavToggle = () => {
     setNavOpen((open) => !open);
@@ -139,24 +145,34 @@ export default function App() {
       <Toolbar />
       <Box sx={{ overflow: "auto" }}>
         <List>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ justifyContent: navOpen ? 'initial' : 'center', px: 1 }}>
             <ListItemButton
               selected={selectedExample === "Single LLM Agent"}
-              onClick={() => { setSelectedExample("Single LLM Agent"); setNavOpen(false); }}
+              onClick={() => { setSelectedExample("Single LLM Agent"); if (isMobile) setNavOpen(false); }}
+              sx={{ justifyContent: navOpen ? 'initial' : 'center', px: navOpen ? 2 : 1 }}
             >
-              <ListItemText primary="Single LLM Agent" />
+              <HomeIcon sx={{ mr: navOpen ? 2 : 0 }} />
+              {navOpen && <ListItemText primary="Single LLM Agent" />}
             </ListItemButton>
           </ListItem>
-          <ListItem disablePadding>
+          <ListItem disablePadding sx={{ justifyContent: navOpen ? 'initial' : 'center', px: 1 }}>
             <ListItemButton
               selected={selectedExample === "Multi-LLM Agent Flow"}
-              onClick={() => { setSelectedExample("Multi-LLM Agent Flow"); setNavOpen(false); }}
+              onClick={() => { setSelectedExample("Multi-LLM Agent Flow"); if (isMobile) setNavOpen(false); }}
+              sx={{ justifyContent: navOpen ? 'initial' : 'center', px: navOpen ? 2 : 1 }}
             >
-              <ListItemText primary="Multi-LLM Agent Flow" />
+              <LayersIcon sx={{ mr: navOpen ? 2 : 0 }} />
+              {navOpen && <ListItemText primary="Multi-LLM Agent Flow" />}
             </ListItemButton>
           </ListItem>
         </List>
       </Box>
+      {/* Collapse/Expand Button */}
+      {!isMobile && (
+        <IconButton onClick={() => setNavOpen(!navOpen)} sx={{ position: 'absolute', top: 8, right: -20, zIndex: 1300, background: '#fff', border: '1px solid #eee', boxShadow: 1 }}>
+          {navOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        </IconButton>
+      )}
     </>
   );
 
@@ -199,18 +215,24 @@ export default function App() {
                   </Toolbar>
                 </AppBar>
                 <Drawer
-                  variant="temporary"
-                  open={navOpen}
-                  onClose={handleNavToggle}
+                  variant={isMobile ? "temporary" : "persistent"}
+                  open={isMobile ? navOpen : true}
+                  onClose={isMobile ? () => setNavOpen(false) : undefined}
                   ModalProps={{ keepMounted: true }}
                   sx={{
-                    display: { xs: 'block', sm: 'block' },
-                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                    width: navOpen ? drawerWidth : miniDrawerWidth,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                      width: navOpen ? drawerWidth : miniDrawerWidth,
+                      boxSizing: 'border-box',
+                      overflowX: 'hidden',
+                      transition: 'width 0.3s',
+                    },
                   }}
                 >
                   {drawerContent}
                 </Drawer>
-                <Box component="main" sx={{ flexGrow: 1, p: 3, ml: `${drawerWidth}px` }}>
+                <Box component="main" sx={{ flexGrow: 1, p: 3, ml: { md: navOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px`, xs: 0 }, transition: 'margin-left 0.3s' }}>
                   <Toolbar />
                   <AppInfo mode={selectedExample === "Multi-LLM Agent Flow" ? "multi" : "single"} />
                   <ConfigPanel multiLLMMode={selectedExample === "Multi-LLM Agent Flow"} />
