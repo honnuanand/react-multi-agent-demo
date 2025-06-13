@@ -10,7 +10,7 @@
 
 ## Demo Video
 
-<iframe width="700" height="394" src="https://www.youtube.com/embed/OL7_WnaCMHQ" title="Multi-Agent Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+[![Watch the demo](https://img.youtube.com/vi/OL7_WnaCMHQ/0.jpg)](https://youtu.be/OL7_WnaCMHQ)
 
 ---
 
