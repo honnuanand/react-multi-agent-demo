@@ -157,7 +157,7 @@ export default function App() {
                   {/* React Flow Section with Title and Paper */}
                   <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>
                     <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>
-                      Agent Flow Visualization
+                      Live Agent Flow
                     </Typography>
                     <AgentFlowGraph />
                   </Paper>
