@@ -30,19 +30,45 @@ export function WriterAgent(props: { sx?: object }) {
           { role: 'user', content: `Create content based on this research: ${msg.content}` }
         ];
         // Emit LLM request event
-        emit("llm_request", {
-          sender: "WriterAgent",
-          receiver: "LLM",
-          type: "llm_request",
-          content: '',
-          timestamp: new Date().toISOString(),
-          prompt: messages,
-        });
+        const validProviders = ['openai', 'anthropic', 'databricks'] as const;
+        for (const provider of validProviders) {
+          emit("llm_request", {
+            sender: "WriterAgent",
+            receiver: "LLM",
+            type: "llm_request",
+            content: '',
+            timestamp: new Date().toISOString(),
+            prompt: messages,
+            provider,
+            model: llms[provider].model || '',
+          });
+        }
+        // Use the global provider for all agents in single LLM mode
+        const provider: typeof validProviders[number] = validProviders.includes(agentLLMs.WriterAgent as any)
+          ? (agentLLMs.WriterAgent as typeof validProviders[number])
+          : 'openai';
+        // console.log('WriterAgent LLM provider:', provider);
+        // console.log('WriterAgent LLM call params:', {
+        //   provider,
+        //   model: llms[provider].model,
+        //   apiUrl: llms[provider].apiUrl,
+        // });
         const generatedContent = await callLLM({
-          provider: agentLLMs.WriterAgent,
+          provider,
           messages: messages,
-          model: llms[agentLLMs.WriterAgent].model,
+          model: llms[provider].model || '',
+          apiUrl: llms[provider].apiUrl || '',
         });
+        const usageRaw = generatedContent.usage as any;
+        const usage = usageRaw
+          ? {
+              prompt_tokens: usageRaw.prompt_tokens ?? usageRaw.promptTokens ?? usageRaw.input_tokens ?? 0,
+              completion_tokens: usageRaw.completion_tokens ?? usageRaw.completionTokens ?? usageRaw.output_tokens ?? 0,
+              total_tokens: usageRaw.total_tokens ?? usageRaw.totalTokens ?? ((usageRaw.input_tokens ?? 0) + (usageRaw.output_tokens ?? 0)),
+              input_tokens: usageRaw.input_tokens,
+              output_tokens: usageRaw.output_tokens,
+            }
+          : undefined;
         // Emit LLM response event
         emit("llm_response", {
           sender: "WriterAgent",
@@ -51,6 +77,9 @@ export function WriterAgent(props: { sx?: object }) {
           content: generatedContent.content,
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
+          usage,
         });
         setContent(generatedContent.content);
         emit("draftReady", {
@@ -79,20 +108,46 @@ export function WriterAgent(props: { sx?: object }) {
           { role: 'user', content: `Revise the following content based on this feedback: ${msg.content}\n\nOriginal content: ${content}` }
         ];
         // Emit LLM request event
-        emit("llm_request", {
-          sender: "WriterAgent",
-          receiver: "LLM",
-          type: "llm_request",
-          content: '',
-          timestamp: new Date().toISOString(),
-          prompt: messages,
-        });
+        const validProviders = ['openai', 'anthropic', 'databricks'] as const;
+        for (const provider of validProviders) {
+          emit("llm_request", {
+            sender: "WriterAgent",
+            receiver: "LLM",
+            type: "llm_request",
+            content: '',
+            timestamp: new Date().toISOString(),
+            prompt: messages,
+            provider,
+            model: llms[provider].model || '',
+          });
+        }
+        // Use the global provider for all agents in single LLM mode
+        const provider: typeof validProviders[number] = validProviders.includes(agentLLMs.WriterAgent as any)
+          ? (agentLLMs.WriterAgent as typeof validProviders[number])
+          : 'openai';
+        // console.log('WriterAgent LLM provider:', provider);
+        // console.log('WriterAgent LLM call params:', {
+        //   provider,
+        //   model: llms[provider].model,
+        //   apiUrl: llms[provider].apiUrl,
+        // });
         const revisedContent = await callLLM({
-          provider: agentLLMs.WriterAgent,
+          provider,
           messages: messages,
-          model: llms[agentLLMs.WriterAgent].model,
+          model: llms[provider].model || '',
+          apiUrl: llms[provider].apiUrl || '',
         });
-        // Emit LLM response event
+        const usageRaw2 = revisedContent.usage as any;
+        const usage2 = usageRaw2
+          ? {
+              prompt_tokens: usageRaw2.prompt_tokens ?? usageRaw2.promptTokens ?? usageRaw2.input_tokens ?? 0,
+              completion_tokens: usageRaw2.completion_tokens ?? usageRaw2.completionTokens ?? usageRaw2.output_tokens ?? 0,
+              total_tokens: usageRaw2.total_tokens ?? usageRaw2.totalTokens ?? ((usageRaw2.input_tokens ?? 0) + (usageRaw2.output_tokens ?? 0)),
+              input_tokens: usageRaw2.input_tokens,
+              output_tokens: usageRaw2.output_tokens,
+            }
+          : undefined;
+        // Emit LLM response event for rewrite
         emit("llm_response", {
           sender: "WriterAgent",
           receiver: "LLM",
@@ -100,6 +155,9 @@ export function WriterAgent(props: { sx?: object }) {
           content: revisedContent.content,
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
+          usage: usage2,
         });
         setContent(revisedContent.content);
         emit("rewriteComplete", {

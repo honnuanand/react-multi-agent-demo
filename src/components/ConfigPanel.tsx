@@ -34,7 +34,7 @@ const AGENTS: { key: keyof AgentLLMSelection; label: string }[] = [
 ];
 
 export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }) {
-  const { llms, setLLM, agentLLMs, setAgentLLM, configuredLLMs, testLLMConnection } = useConfig();
+  const { llms, setLLM, agentLLMs, setAgentLLM, configuredLLMs, testLLMConnection, setGlobalLLMProvider, testSuccess } = useConfig();
   const [showKey, setShowKey] = useState<{ [k in LLMProvider]?: boolean }>({});
   const [temp, setTemp] = useState(() => ({
     openai: { ...llms.openai },
@@ -45,8 +45,8 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
   const [testStatus, setTestStatus] = useState<{ [k in LLMProvider]?: { success: boolean; message: string } }>({});
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
-  const handleSave = (provider: LLMProvider) => {
-    setLLM(provider, temp[provider]);
+  const handleSave = async (provider: LLMProvider) => {
+    await setLLM(provider, temp[provider]);
   };
 
   const handleToggleVisibility = (provider: LLMProvider) => {
@@ -63,7 +63,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
     }
   };
 
-  const configuredProviderKeys = Object.entries(configuredLLMs).filter(([k, v]) => v).map(([k]) => k as LLMProvider);
+  const configuredProviderKeys = configuredLLMs;
   const configuredProviders = PROVIDERS.filter(p => configuredProviderKeys.includes(p.key));
 
   return (
@@ -81,6 +81,22 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
       </Box>
       <Collapse in={open}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, px: 3, pb: 3 }}>
+          {!multiLLMMode && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Select LLM Provider</Typography>
+              <TextField
+                select
+                label="Provider"
+                value={agentLLMs.PlannerAgent}
+                onChange={e => setGlobalLLMProvider(e.target.value as LLMProvider)}
+                sx={{ minWidth: 180 }}
+              >
+                {PROVIDERS.map(p => (
+                  <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
+                ))}
+              </TextField>
+            </Box>
+          )}
           {PROVIDERS.map(({ key, label }) => (
             <Box key={key} sx={{ border: '1px solid #eee', borderRadius: 2, p: 2, background: '#fafbfc' }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>{label}</Typography>
@@ -148,6 +164,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
             </Box>
           ))}
         </Box>
+        {/* Only show per-agent selection in multiLLMMode */}
         {multiLLMMode && (
           <>
             <Divider sx={{ my: 3 }} />
@@ -170,7 +187,9 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
                     disabled={configuredProviderKeys.length === 0}
                   >
                     {configuredProviders.map(p => (
-                      <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
+                      <MenuItem key={p.key} value={p.key}>
+                        {p.label} {testSuccess[p.key] && <CheckCircleIcon sx={{ color: 'success.main', fontSize: 18, ml: 0.5 }} />}
+                      </MenuItem>
                     ))}
                   </TextField>
                 );

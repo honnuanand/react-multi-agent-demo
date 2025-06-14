@@ -20,7 +20,7 @@ export function PlannerAgent(props: { sx?: object }) {
   const { resetSignal } = useReset();
   const [plan, setPlan] = useState("");
   const logError = useErrorLog();
-  const { llms, agentLLMs } = useConfig();
+  const { llms, agentLLMs, setGlobalLLMProvider } = useConfig();
 
   // Reset all state when reset signal changes
   useEffect(() => {
@@ -37,6 +37,12 @@ export function PlannerAgent(props: { sx?: object }) {
         { role: 'system', content: AGENT_PROMPTS.planner },
         { role: 'user', content: input }
       ];
+      // Use the global provider for all agents in single LLM mode
+      const validProviders = ['openai', 'anthropic', 'databricks'] as const;
+      const provider: typeof validProviders[number] = validProviders.includes(agentLLMs.PlannerAgent as any)
+        ? (agentLLMs.PlannerAgent as typeof validProviders[number])
+        : 'openai';
+      // console.log('PlannerAgent LLM provider:', provider);
 
       // Emit LLM request event
       emit("llm_request", {
@@ -46,19 +52,30 @@ export function PlannerAgent(props: { sx?: object }) {
         content: '',
         timestamp: new Date().toISOString(),
         prompt: messages,
+        provider,
+        model: llms[provider].model || '',
       });
 
       const response = await callLLM({
-        provider: agentLLMs.PlannerAgent,
+        provider,
         messages: messages,
-        model: llms[agentLLMs.PlannerAgent].model,
-        apiKey: llms[agentLLMs.PlannerAgent].apiKey,
-        apiUrl: llms[agentLLMs.PlannerAgent].apiUrl,
+        model: llms[provider].model || '',
+        apiUrl: llms[provider].apiUrl || '',
       });
 
       const plan = response.content;
 
       // Emit LLM response event
+      const usageRaw = response.usage as any;
+      const usage = usageRaw
+        ? {
+            prompt_tokens: usageRaw.prompt_tokens ?? usageRaw.promptTokens,
+            completion_tokens: usageRaw.completion_tokens ?? usageRaw.completionTokens,
+            total_tokens: usageRaw.total_tokens ?? usageRaw.totalTokens,
+            input_tokens: usageRaw.input_tokens,
+            output_tokens: usageRaw.output_tokens,
+          }
+        : undefined;
       emit("llm_response", {
         sender: "PlannerAgent",
         receiver: "LLM",
@@ -66,6 +83,9 @@ export function PlannerAgent(props: { sx?: object }) {
         content: plan,
         timestamp: new Date().toISOString(),
         prompt: messages,
+        provider,
+        model: llms[provider].model || '',
+        usage,
       });
       
       setPlan(plan);

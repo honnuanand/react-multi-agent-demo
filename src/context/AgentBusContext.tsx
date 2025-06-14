@@ -8,6 +8,15 @@ export interface Message {
   content: string;
   timestamp: string;
   prompt?: any; // Optional, for LLM request messages
+  provider?: string; // Optional, for LLM info
+  model?: string;    // Optional, for LLM info
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+    input_tokens?: number;
+    output_tokens?: number;
+  };
 }
 
 interface AgentBusContextType {
@@ -35,10 +44,10 @@ const AgentBusProvider = ({ children }: { children: React.ReactNode }) => {
   const emit = useCallback((event: string, message: Message) => {
     setMessages((prev) => {
       const updated = [...prev, message];
-      logListeners.current.forEach((cb) => cb(updated));
+      logListeners.current.forEach((cb) => setTimeout(() => cb(updated), 0));
       return updated;
     });
-    (listeners.current[event] || []).forEach((cb) => cb(message));
+    (listeners.current[event] || []).forEach((cb) => setTimeout(() => cb(message), 0));
   }, []);
 
   const subscribe = useCallback((event: string, cb: (message: Message) => void) => {

@@ -120,6 +120,12 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
                       <AccordionDetails>
                         <List dense>
                           <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start', mb: 1 }}>
+                            {/* Provider, Model, Timestamp info */}
+                            <Typography variant="caption" sx={{ color: '#888', mb: 0.5 }}>
+                              {group.request?.timestamp && <>Time: {new Date(group.request.timestamp).toLocaleTimeString()}<br /></>}
+                              {group.request?.provider && <>Provider: {group.request.provider}<br /></>}
+                              {group.request?.model && <>LLM: {group.request.model}<br /></>}
+                            </Typography>
                             <Typography variant="caption" color="primary" sx={{ fontWeight: 700 }}>Prompt</Typography>
                             <Box sx={{ background: '#f5f5f5', p: 1, borderRadius: 1, width: '100%', mb: 1 }}>
                               <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
@@ -133,6 +139,15 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
                               <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
                                 {group.response?.content || 'N/A'}
                               </pre>
+                              {group.response?.usage && (
+                                <Typography variant="caption" sx={{ color: '#888', mt: 1 }}>
+                                  {group.response.usage.prompt_tokens !== undefined && <>Prompt tokens: {group.response.usage.prompt_tokens}<br /></>}
+                                  {group.response.usage.completion_tokens !== undefined && <>Completion tokens: {group.response.usage.completion_tokens}<br /></>}
+                                  {group.response.usage.input_tokens !== undefined && <>Input tokens: {group.response.usage.input_tokens}<br /></>}
+                                  {group.response.usage.output_tokens !== undefined && <>Output tokens: {group.response.usage.output_tokens}<br /></>}
+                                  {group.response.usage.total_tokens !== undefined && <>Total tokens: {group.response.usage.total_tokens}<br /></>}
+                                </Typography>
+                              )}
                             </Box>
                           </ListItem>
                         </List>

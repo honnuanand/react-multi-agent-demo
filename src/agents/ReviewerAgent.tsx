@@ -28,6 +28,23 @@ export function ReviewerAgent(props: { sx?: object }) {
           { role: 'user', content: `Review this content: ${msg.content}` }
         ];
         // Emit LLM request event
+        const validProviders = ['openai', 'anthropic', 'databricks'] as const;
+        const provider: typeof validProviders[number] = validProviders.includes(agentLLMs.ReviewerAgent as any)
+          ? (agentLLMs.ReviewerAgent as typeof validProviders[number])
+          : 'openai';
+        // console.log('ReviewerAgent LLM provider:', provider);
+        // console.log('ReviewerAgent LLM call params:', {
+        //   provider,
+        //   model: llms[provider].model,
+        //   apiUrl: llms[provider].apiUrl,
+        // });
+        const reviewFeedback = await callLLM({
+          provider,
+          messages: messages,
+          model: llms[provider].model || '',
+          apiUrl: llms[provider].apiUrl || '',
+        });
+        // Emit LLM response event
         emit("llm_request", {
           sender: "ReviewerAgent",
           receiver: "LLM",
@@ -35,15 +52,19 @@ export function ReviewerAgent(props: { sx?: object }) {
           content: '',
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
         });
-        const reviewFeedback = await callLLM({
-          provider: agentLLMs.ReviewerAgent,
-          messages: messages,
-          model: llms[agentLLMs.ReviewerAgent].model,
-          apiKey: llms[agentLLMs.ReviewerAgent].apiKey,
-          apiUrl: llms[agentLLMs.ReviewerAgent].apiUrl,
-        });
-        // Emit LLM response event
+        const usageRaw = reviewFeedback.usage as any;
+        const usage = usageRaw
+          ? {
+              prompt_tokens: usageRaw.prompt_tokens ?? usageRaw.promptTokens ?? usageRaw.input_tokens ?? 0,
+              completion_tokens: usageRaw.completion_tokens ?? usageRaw.completionTokens ?? usageRaw.output_tokens ?? 0,
+              total_tokens: usageRaw.total_tokens ?? usageRaw.totalTokens ?? ((usageRaw.input_tokens ?? 0) + (usageRaw.output_tokens ?? 0)),
+              input_tokens: usageRaw.input_tokens,
+              output_tokens: usageRaw.output_tokens,
+            }
+          : undefined;
         emit("llm_response", {
           sender: "ReviewerAgent",
           receiver: "LLM",
@@ -51,6 +72,9 @@ export function ReviewerAgent(props: { sx?: object }) {
           content: reviewFeedback.content,
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
+          usage,
         });
         setFeedback(reviewFeedback.content);
         

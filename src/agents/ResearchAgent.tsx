@@ -10,6 +10,7 @@ import { CollapsibleText } from '../components/CollapsibleText';
 import { useConfig } from "../context/ConfigContext";
 
 const AGENT_COLOR = '#0288d1'; // cyan for Researcher
+const validProviders = ['openai', 'anthropic', 'databricks'] as const;
 
 export function ResearchAgent(props: { sx?: object }) {
   const [task, setTask] = useState("");
@@ -31,6 +32,11 @@ export function ResearchAgent(props: { sx?: object }) {
         ];
 
         // Emit LLM request event
+        const provider: typeof validProviders[number] = validProviders.includes(agentLLMs.ResearchAgent as any)
+          ? (agentLLMs.ResearchAgent as typeof validProviders[number])
+          : 'openai';
+        // console.log('ResearchAgent LLM provider:', provider);
+
         emit("llm_request", {
           sender: "ResearchAgent",
           receiver: "LLM",
@@ -38,32 +44,46 @@ export function ResearchAgent(props: { sx?: object }) {
           content: '',
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
         });
 
         const researchResults = await callLLM({
-          provider: agentLLMs.ResearchAgent,
+          provider,
           messages: messages,
-          model: llms[agentLLMs.ResearchAgent].model,
-          apiKey: llms[agentLLMs.ResearchAgent].apiKey,
-          apiUrl: llms[agentLLMs.ResearchAgent].apiUrl,
+          model: llms[provider].model || '',
+          apiUrl: llms[provider].apiUrl || '',
         });
         setResearch(researchResults.content);
         
+        const usageRaw = researchResults.usage as any;
+        const usage = usageRaw
+          ? {
+              prompt_tokens: usageRaw.prompt_tokens ?? usageRaw.promptTokens ?? usageRaw.input_tokens ?? 0,
+              completion_tokens: usageRaw.completion_tokens ?? usageRaw.completionTokens ?? usageRaw.output_tokens ?? 0,
+              total_tokens: usageRaw.total_tokens ?? usageRaw.totalTokens ?? ((usageRaw.input_tokens ?? 0) + (usageRaw.output_tokens ?? 0)),
+              input_tokens: usageRaw.input_tokens,
+              output_tokens: usageRaw.output_tokens,
+            }
+          : undefined;
         // Emit LLM response event
         emit("llm_response", {
           sender: "ResearchAgent",
           receiver: "LLM",
           type: "llm_response",
-          content: researchResults,
+          content: researchResults.content,
           timestamp: new Date().toISOString(),
           prompt: messages,
+          provider,
+          model: llms[provider].model || '',
+          usage,
         });
 
         emit("researchReady", {
           sender: "ResearchAgent",
           receiver: "WriterAgent",
           type: "research",
-          content: researchResults,
+          content: researchResults.content,
           timestamp: new Date().toISOString()
         });
       } catch (error) {

@@ -16,12 +16,13 @@ export async function callLLM({
   const body: any = { messages, model };
   if (apiKey) body.apiKey = apiKey;
   if (apiUrl) body.apiUrl = apiUrl;
-  console.log("Sending to backend:", body);
+  // console.log("Sending to backend:", body);
   const response = await fetch(`/api/llm/${provider}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
 

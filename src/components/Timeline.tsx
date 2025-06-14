@@ -90,7 +90,11 @@ export function CollapsibleTimeline() {
                               </Box>
                               <Collapse in={expandedSteps[stepKey]}>
                                 <Typography variant="body2" sx={{ pl: 2, pt: 0.5, whiteSpace: 'pre-line' }}>{msg.content}</Typography>
-                                <Typography variant="caption" sx={{ color: '#888', pl: 2 }}>{new Date(msg.timestamp).toLocaleTimeString()}</Typography>
+                                <Typography variant="caption" sx={{ color: '#888', pl: 2 }}>
+                                  {msg.timestamp && <>Time: {new Date(msg.timestamp).toLocaleTimeString()}<br /></>}
+                                  {msg.provider && <>Provider: {msg.provider}<br /></>}
+                                  {msg.model && <>LLM: {msg.model}<br /></>}
+                                </Typography>
                               </Collapse>
                             </ListItem>
                             {idx < group.messages.length - 1 && <Divider component="li" />}

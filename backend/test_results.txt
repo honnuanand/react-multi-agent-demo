@@ -1,0 +1,19 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-8.4.0, pluggy-1.6.0 -- /Users/anand/clues/repos/ai_agent_collab_app_mui_20250613_052801/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/anand/clues/repos/ai_agent_collab_app_mui_20250613_052801/backend
+plugins: anyio-4.9.0
+collecting ... collected 10 items
+
+test_llm.py::test_openai_llm_env PASSED                                  [ 10%]
+test_llm.py::test_anthropic_llm_env PASSED                               [ 20%]
+test_llm.py::test_databricks_llm_env PASSED                              [ 30%]
+test_llm.py::test_anthropic_session_integration PASSED                   [ 40%]
+test_llm.py::test_databricks_session_integration PASSED                  [ 50%]
+test_llm.py::test_missing_key PASSED                                     [ 60%]
+test_llm.py::test_session_helper_unit PASSED                             [ 70%]
+test_llm.py::test_openai_real_integration PASSED                         [ 80%]
+test_llm.py::test_anthropic_real_integration PASSED                      [ 90%]
+test_llm.py::test_databricks_real_integration PASSED                     [100%]
+
+======================== 10 passed, 1 warning in 0.21s =========================

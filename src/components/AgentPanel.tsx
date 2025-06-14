@@ -57,18 +57,6 @@ export function AgentPanel({ title, collapsed, setCollapsed, children, icon, col
       </Box>
       <Collapse in={!collapsed}>
         <Box mt={2}>
-          <TextField
-            select
-            label="LLM Provider"
-            value={agentValue}
-            onChange={e => setAgentLLM(agentKey as any, e.target.value as LLMProvider)}
-            sx={{ minWidth: 180, mb: 2 }}
-            disabled={configuredProviderKeys.length === 0}
-          >
-            {configuredProviders.map(p => (
-              <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
-            ))}
-          </TextField>
           {children}
         </Box>
       </Collapse>

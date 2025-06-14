@@ -9,34 +9,55 @@ export type LLMProvider = 'openai' | 'anthropic' | 'databricks';
 
 export interface CallLLMParams {
   provider: LLMProvider;
-  prompt: AgentMessage[];
+  messages: AgentMessage[];
   model: string;
-  apiKey: string;
+  apiKey?: string;
   apiUrl?: string; // for databricks
 }
 
 let openaiClient: OpenAI | null = null;
 
-export async function callLLM({ provider, prompt, model, apiKey, apiUrl }: CallLLMParams): Promise<string> {
+export async function callLLM({ provider, messages, model, apiKey, apiUrl }: CallLLMParams): Promise<{ content: string; model: string; usage: { promptTokens: number; completionTokens: number; totalTokens: number } }> {
   if (provider === 'openai') {
+    const body: any = {
+      messages,
+      model,
+      provider,
+      apiUrl: apiUrl || 'https://api.openai.com/v1/chat/completions',
+    };
     const response = await fetch('/api/llm/openai', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        prompt,
-        model,
-        apiKey,
-        apiUrl: apiUrl || 'https://api.openai.com/v1/chat/completions',
-      }),
+      credentials: 'include',
+      body: JSON.stringify(body),
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
     }
     const data = await response.json();
-    return data.choices?.[0]?.message?.content || data.content || 'No response from OpenAI';
+    if (data.choices?.[0]?.message?.content) {
+      return {
+        content: data.choices[0].message.content,
+        model: data.model,
+        usage: {
+          promptTokens: data.usage?.prompt_tokens || 0,
+          completionTokens: data.usage?.completion_tokens || 0,
+          totalTokens: data.usage?.total_tokens || 0
+        }
+      };
+    }
+    return {
+      content: data.content || 'No response from OpenAI',
+      model: data.model,
+      usage: {
+        promptTokens: data.usage?.prompt_tokens || 0,
+        completionTokens: data.usage?.completion_tokens || 0,
+        totalTokens: data.usage?.total_tokens || 0
+      }
+    };
   }
   // Placeholder for other providers
   if (provider === 'anthropic') {

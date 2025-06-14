@@ -31,6 +31,8 @@ export type ConfigContextType = {
   setAgentLLM: (agent: AgentType, provider: LLMProvider) => void;
   configuredLLMs: LLMProvider[];
   testLLMConnection: (provider: LLMProvider) => Promise<boolean>;
+  setGlobalLLMProvider: (provider: LLMProvider) => void;
+  testSuccess: { [k in LLMProvider]?: boolean };
 };
 
 interface SnackbarState {
@@ -54,9 +56,9 @@ const defaultLLMConfig: LLMConfig = {
 
 const defaultAgentLLMs: AgentLLMSelection = {
   PlannerAgent: 'openai',
-  ResearchAgent: 'anthropic',
+  ResearchAgent: 'openai',
   WriterAgent: 'openai',
-  ReviewerAgent: 'anthropic',
+  ReviewerAgent: 'openai',
 };
 
 export const ConfigContext = createContext<ConfigContextType>({
@@ -66,19 +68,26 @@ export const ConfigContext = createContext<ConfigContextType>({
   setAgentLLM: () => {},
   configuredLLMs: [],
   testLLMConnection: async () => false,
+  setGlobalLLMProvider: () => {},
+  testSuccess: {},
 });
 
 export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
   const [llms, setLLMs] = useState<LLMConfig>(defaultLLMConfig);
   const [agentLLMs, setAgentLLMs] = useState<AgentLLMSelection>(defaultAgentLLMs);
-  const [configuredLLMs, setConfiguredLLMs] = useState<LLMProvider[]>([]);
+  const [testSuccess, setTestSuccess] = useState<{ [k in LLMProvider]?: boolean }>({});
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
     severity: 'success',
   });
 
-  const setLLM = (provider: LLMProvider, config: Partial<LLMConfig[LLMProvider]>) => {
+  // Only include providers that have passed the test
+  const configuredLLMs = useMemo(() => {
+    return (['openai', 'anthropic', 'databricks'] as LLMProvider[]).filter(p => testSuccess[p]);
+  }, [testSuccess]);
+
+  const setLLM = async (provider: LLMProvider, config: Partial<LLMConfig[LLMProvider]>) => {
     setLLMs(prev => ({
       ...prev,
       [provider]: {
@@ -86,6 +95,25 @@ export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
         ...config,
       },
     }));
+
+    // Store API key in session if provided
+    if (config.apiKey) {
+      try {
+        const response = await fetch(`/api/session/set_key`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: 'include',
+          body: JSON.stringify({ provider, apiKey: config.apiKey }),
+        });
+        if (!response.ok) {
+          console.error('Failed to store API key in session');
+        }
+      } catch (error) {
+        console.error('Error storing API key in session:', error);
+      }
+    }
   };
 
   const setAgentLLM = (agent: AgentType, provider: LLMProvider) => {
@@ -97,28 +125,25 @@ export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
 
   const testLLMConnection = async (provider: LLMProvider): Promise<boolean> => {
     try {
+      const model = llms[provider].model || defaultLLMConfig[provider].model;
       const response = await fetch(`/api/llm/${provider}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          messages: [{ role: 'user', content: 'test' }],
-          model: llms[provider].model,
-          apiKey: llms[provider].apiKey || '',
-          apiUrl: llms[provider].apiUrl || '',
-          provider,
-        }),
+        credentials: 'include',
+        body: JSON.stringify({ messages: [{ role: 'user', content: 'test' }], model, apiKey: llms[provider].apiKey, provider }),
       });
-      
       if (response.ok) {
         setSnackbar({
           open: true,
           message: `Successfully connected to ${provider}!`,
           severity: 'success',
         });
+        setTestSuccess(prev => ({ ...prev, [provider]: true }));
         return true;
       } else {
+        setTestSuccess(prev => ({ ...prev, [provider]: false }));
         throw new Error(`Failed to connect to ${provider}`);
       }
     } catch (error) {
@@ -128,19 +153,33 @@ export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
         message: `Failed to connect to ${provider}. Please check your configuration.`,
         severity: 'error',
       });
+      setTestSuccess(prev => ({ ...prev, [provider]: false }));
       return false;
     }
   };
 
+  const setGlobalLLMProvider = (provider: LLMProvider) => {
+    setAgentLLMs({
+      PlannerAgent: provider,
+      ResearchAgent: provider,
+      WriterAgent: provider,
+      ReviewerAgent: provider,
+    });
+  };
+
   return (
-    <ConfigContext.Provider value={{
-      llms,
-      setLLM,
-      agentLLMs,
-      setAgentLLM,
-      configuredLLMs,
-      testLLMConnection,
-    }}>
+    <ConfigContext.Provider
+      value={{
+        llms,
+        setLLM,
+        agentLLMs,
+        setAgentLLM,
+        configuredLLMs,
+        testLLMConnection,
+        setGlobalLLMProvider,
+        testSuccess,
+      }}
+    >
       {children}
     </ConfigContext.Provider>
   );

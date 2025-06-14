@@ -13,10 +13,10 @@ export interface LLMParams {
   provider: LLMProvider;
   model: string;
   messages: Message[];
-  apiKey: string;
   maxTokens?: number;
   temperature?: number;
   apiUrl?: string;
+  apiKey?: string;
 }
 
 export interface LLMResponse {
@@ -32,11 +32,7 @@ export interface LLMResponse {
 export async function callLLM(params: LLMParams): Promise<LLMResponse> {
   switch (params.provider) {
     case 'openai': {
-      // OpenAI expects 'prompt' instead of 'messages'
-      const { provider, messages, ...rest } = params;
-      const prompt = messages.map(m => ({ role: m.role, content: m.content }));
-      const result = await callOpenAI({ provider, ...rest, prompt });
-      // Adapt result to LLMResponse if needed
+      const result = await callOpenAI({ ...params });
       if (typeof result === 'string') {
         return {
           content: result,
@@ -44,21 +40,14 @@ export async function callLLM(params: LLMParams): Promise<LLMResponse> {
           usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
         };
       }
-      const typedResult = result as { choices: Array<{ message: { content: string } }> };
-      if (typedResult && typedResult.choices && Array.isArray(typedResult.choices)) {
-        return {
-          content: typedResult.choices.map(choice => choice.message.content).join('\n'),
-          model: params.model,
-          usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
-        };
-      }
-      throw new Error('Invalid response format from API');
+      return {
+        content: result.content,
+        model: result.model,
+        usage: result.usage
+      };
     }
     case 'databricks': {
-      // Databricks expects 'prompt' instead of 'messages'
-      const { provider, messages, ...rest } = params;
-      const prompt = messages.map(m => ({ role: m.role, content: m.content }));
-      const result = await callDatabricks({ provider, ...rest, prompt });
+      const result = await callDatabricks({ ...params });
       if (typeof result === 'string') {
         return {
           content: result,

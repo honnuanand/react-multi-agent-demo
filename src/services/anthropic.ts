@@ -7,14 +7,15 @@ export async function callLLM(params: LLMParams): Promise<LLMResponse> {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include',
       body: JSON.stringify({
         model: params.model,
         messages: params.messages,
         max_tokens: params.maxTokens || 1000,
         temperature: params.temperature || 0.7,
         stream: false,
-        apiKey: params.apiKey,
-        apiUrl: params.apiUrl
+        apiUrl: params.apiUrl,
+        provider: params.provider,
       })
     });
 
