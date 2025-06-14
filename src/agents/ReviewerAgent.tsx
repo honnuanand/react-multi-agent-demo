@@ -4,8 +4,10 @@ import { useAgentBus } from "../context/AgentBusContext";
 import { useReset } from "../context/ResetContext";
 import { AgentPanel } from "../components/AgentPanel";
 import RateReviewIcon from "@mui/icons-material/RateReview";
-import { callOpenAI, AGENT_PROMPTS, AgentMessage } from "../services/openai";
+import { callLLM } from '../services/llm';
+import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
+import { useConfig } from "../context/ConfigContext";
 
 const AGENT_COLOR = '#43a047'; // green for Reviewer
 
@@ -15,6 +17,7 @@ export function ReviewerAgent(props: { sx?: object }) {
   const [collapsed, setCollapsed] = useState(false);
   const { emit, subscribe } = useAgentBus();
   const { resetSignal } = useReset();
+  const { llms, agentLLMs } = useConfig();
 
   useEffect(() => {
     const unsub = subscribe("draftReady", async (msg) => {
@@ -33,23 +36,29 @@ export function ReviewerAgent(props: { sx?: object }) {
           timestamp: new Date().toISOString(),
           prompt: messages,
         });
-        const reviewFeedback = await callOpenAI(messages);
+        const reviewFeedback = await callLLM({
+          provider: agentLLMs.ReviewerAgent,
+          messages: messages,
+          model: llms[agentLLMs.ReviewerAgent].model,
+          apiKey: llms[agentLLMs.ReviewerAgent].apiKey,
+          apiUrl: llms[agentLLMs.ReviewerAgent].apiUrl,
+        });
         // Emit LLM response event
         emit("llm_response", {
           sender: "ReviewerAgent",
           receiver: "LLM",
           type: "llm_response",
-          content: reviewFeedback,
+          content: reviewFeedback.content,
           timestamp: new Date().toISOString(),
           prompt: messages,
         });
-        setFeedback(reviewFeedback);
+        setFeedback(reviewFeedback.content);
         
         emit("reviewComplete", {
           sender: "ReviewerAgent",
           receiver: "WriterAgent",
           type: "feedback",
-          content: reviewFeedback,
+          content: reviewFeedback.content,
           timestamp: new Date().toISOString()
         });
       } catch (error) {
@@ -67,7 +76,16 @@ export function ReviewerAgent(props: { sx?: object }) {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Reviewer Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<RateReviewIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : feedback ? 'done' : 'idle'} sx={props.sx}>
+    <AgentPanel
+      title="Reviewer Agent"
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      icon={<RateReviewIcon />}
+      color={AGENT_COLOR}
+      state={isLoading ? 'loading' : feedback ? 'done' : 'idle'}
+      sx={props.sx}
+      agentKey="ReviewerAgent"
+    >
       {isLoading ? (
         <CircularProgress size={24} />
       ) : (

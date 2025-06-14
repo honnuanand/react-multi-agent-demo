@@ -4,7 +4,8 @@ import { useAgentBus } from "../context/AgentBusContext";
 import { useReset } from "../context/ResetContext";
 import { AgentPanel } from "../components/AgentPanel";
 import AssignmentIcon from "@mui/icons-material/Assignment";
-import { callOpenAI, AGENT_PROMPTS, AgentMessage, initializeOpenAI } from "../services/openai";
+import { callLLM } from '../services/llm';
+import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
 import { useErrorLog } from '../context/ErrorLogContext';
 import { useConfig } from '../context/ConfigContext';
@@ -19,7 +20,7 @@ export function PlannerAgent(props: { sx?: object }) {
   const { resetSignal } = useReset();
   const [plan, setPlan] = useState("");
   const logError = useErrorLog();
-  const { llms } = useConfig();
+  const { llms, agentLLMs } = useConfig();
 
   // Reset all state when reset signal changes
   useEffect(() => {
@@ -32,9 +33,6 @@ export function PlannerAgent(props: { sx?: object }) {
   const handlePlan = async () => {
     setIsLoading(true);
     try {
-      // Initialize OpenAI client with the API key from config
-      initializeOpenAI(llms.openai.apiKey);
-
       const messages: AgentMessage[] = [
         { role: 'system', content: AGENT_PROMPTS.planner },
         { role: 'user', content: input }
@@ -50,7 +48,15 @@ export function PlannerAgent(props: { sx?: object }) {
         prompt: messages,
       });
 
-      const plan = await callOpenAI(messages);
+      const response = await callLLM({
+        provider: agentLLMs.PlannerAgent,
+        messages: messages,
+        model: llms[agentLLMs.PlannerAgent].model,
+        apiKey: llms[agentLLMs.PlannerAgent].apiKey,
+        apiUrl: llms[agentLLMs.PlannerAgent].apiUrl,
+      });
+
+      const plan = response.content;
 
       // Emit LLM response event
       emit("llm_response", {
@@ -82,7 +88,16 @@ export function PlannerAgent(props: { sx?: object }) {
   };
 
   return (
-    <AgentPanel title="Planner Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<AssignmentIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : plan ? 'done' : 'idle'} sx={props.sx}>
+    <AgentPanel
+      title="Planner Agent"
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      icon={<AssignmentIcon />}
+      color={AGENT_COLOR}
+      state={isLoading ? 'loading' : plan ? 'done' : 'idle'}
+      sx={props.sx}
+      agentKey="PlannerAgent"
+    >
       {!collapsed && (
         <>
           <TextField

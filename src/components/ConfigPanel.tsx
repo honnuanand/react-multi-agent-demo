@@ -10,12 +10,16 @@ import {
   MenuItem,
   Divider,
   Collapse,
+  Grid,
 } from '@mui/material';
 import { useConfig, LLMProvider, AgentLLMSelection } from '../context/ConfigContext';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const PROVIDERS: { key: LLMProvider; label: string }[] = [
   { key: 'openai', label: 'OpenAI' },
@@ -27,12 +31,10 @@ const AGENTS: { key: keyof AgentLLMSelection; label: string }[] = [
   { key: 'ResearchAgent', label: 'Researcher' },
   { key: 'WriterAgent', label: 'Writer' },
   { key: 'ReviewerAgent', label: 'Reviewer' },
-  { key: 'HtmlAgent', label: 'HTML' },
-  { key: 'PdfAgent', label: 'PDF' },
 ];
 
 export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }) {
-  const { llms, setLLMConfig, agentLLMs, setAgentLLM } = useConfig();
+  const { llms, setLLM, agentLLMs, setAgentLLM, configuredLLMs, testLLMConnection } = useConfig();
   const [showKey, setShowKey] = useState<{ [k in LLMProvider]?: boolean }>({});
   const [temp, setTemp] = useState(() => ({
     openai: { ...llms.openai },
@@ -40,16 +42,29 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
     databricks: { ...llms.databricks },
   }));
   const [open, setOpen] = useState(true);
+  const [testStatus, setTestStatus] = useState<{ [k in LLMProvider]?: { success: boolean; message: string } }>({});
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   const handleSave = (provider: LLMProvider) => {
-    setLLMConfig(provider, temp[provider]);
+    setLLM(provider, temp[provider]);
   };
 
   const handleToggleVisibility = (provider: LLMProvider) => {
     setShowKey(prev => ({ ...prev, [provider]: !prev[provider] }));
   };
 
-  const configuredProviders = PROVIDERS.filter(p => temp[p.key].apiKey);
+  const handleTest = async (provider: LLMProvider) => {
+    try {
+      const success = await testLLMConnection(provider);
+      setTestStatus(prev => ({ ...prev, [provider]: { success, message: success ? `Successfully connected to ${provider}!` : `Failed to connect to ${provider}.` } }));
+    } catch (error: any) {
+      console.error('Error testing connection:', error);
+      setTestStatus(prev => ({ ...prev, [provider]: { success: false, message: `Failed to connect to ${provider}: ${error.message}` } }));
+    }
+  };
+
+  const configuredProviderKeys = Object.entries(configuredLLMs).filter(([k, v]) => v).map(([k]) => k as LLMProvider);
+  const configuredProviders = PROVIDERS.filter(p => configuredProviderKeys.includes(p.key));
 
   return (
     <Paper
@@ -69,11 +84,11 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
           {PROVIDERS.map(({ key, label }) => (
             <Box key={key} sx={{ border: '1px solid #eee', borderRadius: 2, p: 2, background: '#fafbfc' }}>
               <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>{label}</Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
                   label={`${label} API Key`}
                   type={showKey[key] ? 'text' : 'password'}
-                  value={temp[key].apiKey}
+                  value={temp[key].apiKey || ""}
                   onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], apiKey: e.target.value } }))}
                   fullWidth
                   InputProps={{
@@ -89,7 +104,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
                 />
                 <TextField
                   label={`${label} Model`}
-                  value={temp[key].model}
+                  value={temp[key].model || ""}
                   onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], model: e.target.value } }))}
                   fullWidth
                   sx={{ mb: 2, maxWidth: 300 }}
@@ -97,7 +112,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
                 {key === 'databricks' && (
                   <TextField
                     label="Databricks API URL"
-                    value={temp[key].apiUrl}
+                    value={temp[key].apiUrl || ""}
                     onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], apiUrl: e.target.value } }))}
                     fullWidth
                     sx={{ mb: 2, maxWidth: 400 }}
@@ -111,6 +126,24 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
                 >
                   Save
                 </Button>
+                <Button
+                  variant="outlined"
+                  color="info"
+                  onClick={() => handleTest(key)}
+                  sx={{ height: 56, alignSelf: 'flex-end' }}
+                >
+                  Test
+                </Button>
+                {testStatus[key]?.message && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+                    {testStatus[key].success && (
+                      <CheckCircleIcon sx={{ color: 'success.main', mr: 0.5, fontSize: 20 }} />
+                    )}
+                    <Typography variant="body2" color={testStatus[key].success ? 'success.main' : 'error.main'}>
+                      {testStatus[key].message}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
           ))}
@@ -123,7 +156,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, px: 3, pb: 3 }}>
               {AGENTS.map(agent => {
-                const agentValue = configuredProviders.some(p => p.key === agentLLMs[agent.key])
+                const agentValue = configuredProviderKeys.includes(agentLLMs[agent.key])
                   ? agentLLMs[agent.key]
                   : '';
                 return (
@@ -134,7 +167,7 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
                     value={agentValue}
                     onChange={e => setAgentLLM(agent.key, e.target.value as LLMProvider)}
                     sx={{ minWidth: 180 }}
-                    disabled={configuredProviders.length === 0}
+                    disabled={configuredProviderKeys.length === 0}
                   >
                     {configuredProviders.map(p => (
                       <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
@@ -146,6 +179,16 @@ export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }
           </>
         )}
       </Collapse>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbar(s => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Paper>
   );
 }
