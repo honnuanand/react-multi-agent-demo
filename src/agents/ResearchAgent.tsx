@@ -4,8 +4,10 @@ import { useAgentBus } from "../context/AgentBusContext";
 import { useReset } from "../context/ResetContext";
 import { AgentPanel } from "../components/AgentPanel";
 import SearchIcon from "@mui/icons-material/Search";
-import { callOpenAI, AGENT_PROMPTS, AgentMessage } from "../services/openai";
+import { callLLM } from '../services/llm';
+import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
+import { useConfig } from "../context/ConfigContext";
 
 const AGENT_COLOR = '#0288d1'; // cyan for Researcher
 
@@ -16,6 +18,7 @@ export function ResearchAgent(props: { sx?: object }) {
   const [collapsed, setCollapsed] = useState(false);
   const { emit, subscribe } = useAgentBus();
   const { resetSignal } = useReset();
+  const { llms, agentLLMs } = useConfig();
 
   useEffect(() => {
     const unsub = subscribe("planReady", async (msg) => {
@@ -37,8 +40,14 @@ export function ResearchAgent(props: { sx?: object }) {
           prompt: messages,
         });
 
-        const researchResults = await callOpenAI(messages);
-        setResearch(researchResults);
+        const researchResults = await callLLM({
+          provider: agentLLMs.ResearchAgent,
+          messages: messages,
+          model: llms[agentLLMs.ResearchAgent].model,
+          apiKey: llms[agentLLMs.ResearchAgent].apiKey,
+          apiUrl: llms[agentLLMs.ResearchAgent].apiUrl,
+        });
+        setResearch(researchResults.content);
         
         // Emit LLM response event
         emit("llm_response", {
@@ -65,7 +74,7 @@ export function ResearchAgent(props: { sx?: object }) {
       }
     });
     return () => unsub();
-  }, [subscribe, emit]);
+  }, [subscribe, emit, llms, agentLLMs]);
 
   useEffect(() => {
     setTask("");
@@ -73,7 +82,16 @@ export function ResearchAgent(props: { sx?: object }) {
   }, [resetSignal]);
 
   return (
-    <AgentPanel title="Research Agent" collapsed={collapsed} setCollapsed={setCollapsed} icon={<SearchIcon />} color={AGENT_COLOR} state={isLoading ? 'loading' : research ? 'done' : 'idle'} sx={props.sx}>
+    <AgentPanel
+      title="Research Agent"
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      icon={<SearchIcon />}
+      color={AGENT_COLOR}
+      state={isLoading ? 'loading' : research ? 'done' : 'idle'}
+      sx={props.sx}
+      agentKey="ResearchAgent"
+    >
       {isLoading ? (
         <CircularProgress size={24} />
       ) : (

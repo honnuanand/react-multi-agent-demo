@@ -124,4 +124,48 @@
 ---
 
 [View on GitHub](https://github.com/honnuanand/react-multi-agent-demo)
-[Live Demo](https://honnuanand.github.io/react-multi-agent-demo/) 
+[Live Demo](https://honnuanand.github.io/react-multi-agent-demo/)
+
+# Startup Scripts
+
+- Start the frontend (Vite):
+  ```sh
+  ./start-frontend.sh
+  ```
+- Start the backend (FastAPI):
+  ```sh
+  ./start-backend.sh
+  ```
+
+# Local Development
+
+- Start the frontend (React/Vite):
+  ```sh
+  npm run dev
+  ```
+- Start the backend (FastAPI):
+  ```sh
+  npm run backend
+  ```
+- The Vite dev server proxies `/api/llm/*` requests to FastAPI at `http://localhost:8000`.
+
+# Production/Deployment
+
+- Build the frontend:
+  ```sh
+  npm run build
+  ```
+- Start the backend (serves both API and static frontend):
+  ```sh
+  npm start
+  ```
+- FastAPI will serve the built React app as static files and handle all `/api/llm/*` API requests.
+
+# Architecture
+
+- **Split mode (dev):** Vite serves frontend, FastAPI serves API, proxy connects them.
+- **Single-app (prod):** FastAPI serves both static frontend and API.
+
+# Notes
+- You can deploy the backend (with built frontend) to Databricks Apps, Kubernetes, or any Python hosting platform.
+- For Databricks Apps, follow the [Databricks blog guide](https://www.databricks.com/blog/building-databricks-apps-react-and-mosaic-ai-agents-enterprise-chat-solutions). 
