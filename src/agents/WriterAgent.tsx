@@ -41,6 +41,7 @@ export function WriterAgent(props: { sx?: object }) {
             prompt: messages,
             provider,
             model: llms[provider].model || '',
+            usage: undefined,
           });
         }
         // Use the global provider for all agents in single LLM mode
@@ -87,7 +88,11 @@ export function WriterAgent(props: { sx?: object }) {
           receiver: "ReviewerAgent",
           type: "draft",
           content: generatedContent.content,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          prompt: undefined,
+          provider: undefined,
+          model: undefined,
+          usage: undefined,
         });
       } catch (error) {
         console.error("Writing error:", error);
@@ -119,6 +124,7 @@ export function WriterAgent(props: { sx?: object }) {
             prompt: messages,
             provider,
             model: llms[provider].model || '',
+            usage: undefined,
           });
         }
         // Use the global provider for all agents in single LLM mode
@@ -165,7 +171,11 @@ export function WriterAgent(props: { sx?: object }) {
           receiver: "ReviewerAgent",
           type: "draft",
           content: revisedContent.content,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          prompt: undefined,
+          provider: undefined,
+          model: undefined,
+          usage: undefined,
         });
       } catch (error) {
         console.error("Rewriting error:", error);

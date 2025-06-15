@@ -46,6 +46,7 @@ export function ResearchAgent(props: { sx?: object }) {
           prompt: messages,
           provider,
           model: llms[provider].model || '',
+          usage: undefined,
         });
 
         const researchResults = await callLLM({
@@ -84,7 +85,11 @@ export function ResearchAgent(props: { sx?: object }) {
           receiver: "WriterAgent",
           type: "research",
           content: researchResults.content,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          prompt: undefined,
+          provider: undefined,
+          model: undefined,
+          usage: undefined,
         });
       } catch (error) {
         console.error("Research error:", error);

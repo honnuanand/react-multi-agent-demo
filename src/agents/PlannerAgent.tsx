@@ -54,6 +54,7 @@ export function PlannerAgent(props: { sx?: object }) {
         prompt: messages,
         provider,
         model: llms[provider].model || '',
+        usage: undefined,
       });
 
       const response = await callLLM({
@@ -89,15 +90,18 @@ export function PlannerAgent(props: { sx?: object }) {
       });
       
       setPlan(plan);
-      const message = {
+      // Emit planReady event (agent-to-agent)
+      emit("planReady", {
         sender: "PlannerAgent",
         receiver: "ResearchAgent",
         type: "task",
         content: plan,
-        timestamp: new Date().toISOString()
-      };
-      
-      emit("planReady", message);
+        timestamp: new Date().toISOString(),
+        prompt: undefined,
+        provider: undefined,
+        model: undefined,
+        usage: undefined,
+      });
     } catch (error) {
       console.error("Planning error:", error);
       // Log error to global error log panel

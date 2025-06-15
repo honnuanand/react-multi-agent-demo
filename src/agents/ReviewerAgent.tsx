@@ -54,6 +54,7 @@ export function ReviewerAgent(props: { sx?: object }) {
           prompt: messages,
           provider,
           model: llms[provider].model || '',
+          usage: undefined,
         });
         const usageRaw = reviewFeedback.usage as any;
         const usage = usageRaw
@@ -83,7 +84,11 @@ export function ReviewerAgent(props: { sx?: object }) {
           receiver: "WriterAgent",
           type: "feedback",
           content: reviewFeedback.content,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          prompt: undefined,
+          provider: undefined,
+          model: undefined,
+          usage: undefined,
         });
       } catch (error) {
         console.error("Review error:", error);
