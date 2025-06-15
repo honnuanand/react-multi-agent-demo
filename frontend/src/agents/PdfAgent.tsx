@@ -7,6 +7,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
 import { marked } from 'marked';
 import html2pdf from 'html2pdf.js';
+import { v4 as uuidv4 } from 'uuid';
 
 export function PdfAgent(props: { sx?: object }) {
   const { messages, emit } = useAgentBus();
@@ -43,11 +44,16 @@ ${latestDraft}`;
     const generatedMarkdown = latestDraft;
     setPdfContent(generatedMarkdown);
     emit("pdfReady", {
+      id: uuidv4(),
       sender: "PdfAgent",
       receiver: "User",
       type: "pdf",
       content: generatedMarkdown,
       timestamp: new Date().toISOString(),
+      prompt: undefined,
+      provider: undefined,
+      model: undefined,
+      usage: undefined,
     });
     setIsLoading(false);
   };
@@ -157,6 +163,7 @@ ${latestDraft}`;
       color="#e53935"
       state={pdfContent ? 'done' : isLoading ? 'loading' : 'idle'}
       sx={props.sx}
+      agentKey="PdfAgent"
     >
       <Button
         variant="contained"

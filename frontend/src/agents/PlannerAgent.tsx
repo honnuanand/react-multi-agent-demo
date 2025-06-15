@@ -9,6 +9,7 @@ import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
 import { useErrorLog } from '../context/ErrorLogContext';
 import { useConfig } from '../context/ConfigContext';
+import { v4 as uuidv4 } from 'uuid';
 
 const AGENT_COLOR = '#1976d2'; // blue for Planner
 
@@ -92,6 +93,7 @@ export function PlannerAgent(props: { sx?: object }) {
       setPlan(plan);
       // Emit planReady event (agent-to-agent)
       emit("planReady", {
+        id: uuidv4(),
         sender: "PlannerAgent",
         receiver: "ResearchAgent",
         type: "task",

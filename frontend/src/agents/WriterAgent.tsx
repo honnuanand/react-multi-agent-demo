@@ -8,6 +8,7 @@ import { callLLM } from '../services/llm';
 import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
 import { useConfig } from "../context/ConfigContext";
+import { v4 as uuidv4 } from 'uuid';
 
 // Color and state indicator for future UI enhancements
 const AGENT_COLOR = '#7b1fa2'; // purple for Writer
@@ -84,6 +85,7 @@ export function WriterAgent(props: { sx?: object }) {
         });
         setContent(generatedContent.content);
         emit("draftReady", {
+          id: uuidv4(),
           sender: "WriterAgent",
           receiver: "ReviewerAgent",
           type: "draft",
@@ -167,6 +169,7 @@ export function WriterAgent(props: { sx?: object }) {
         });
         setContent(revisedContent.content);
         emit("rewriteComplete", {
+          id: uuidv4(),
           sender: "WriterAgent",
           receiver: "ReviewerAgent",
           type: "draft",

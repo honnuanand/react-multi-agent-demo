@@ -8,6 +8,7 @@ import { callLLM } from '../services/llm';
 import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
 import { useConfig } from "../context/ConfigContext";
+import { v4 as uuidv4 } from 'uuid';
 
 const AGENT_COLOR = '#43a047'; // green for Reviewer
 
@@ -80,6 +81,7 @@ export function ReviewerAgent(props: { sx?: object }) {
         setFeedback(reviewFeedback.content);
         
         emit("reviewComplete", {
+          id: uuidv4(),
           sender: "ReviewerAgent",
           receiver: "WriterAgent",
           type: "feedback",

@@ -8,6 +8,7 @@ import { callLLM } from '../services/llm';
 import { AGENT_PROMPTS, AgentMessage } from "../services/openai";
 import { CollapsibleText } from '../components/CollapsibleText';
 import { useConfig } from "../context/ConfigContext";
+import { v4 as uuidv4 } from 'uuid';
 
 const AGENT_COLOR = '#0288d1'; // cyan for Researcher
 const validProviders = ['openai', 'anthropic', 'databricks'] as const;
@@ -81,6 +82,7 @@ export function ResearchAgent(props: { sx?: object }) {
         });
 
         emit("researchReady", {
+          id: uuidv4(),
           sender: "ResearchAgent",
           receiver: "WriterAgent",
           type: "research",

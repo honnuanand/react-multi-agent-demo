@@ -2,6 +2,7 @@ import React, { createContext, useContext, useRef, useState, useCallback, useEff
 import { useReset } from "./ResetContext";
 
 export interface Message {
+  id?: string;
   sender: string;
   receiver: string;
   type: string;

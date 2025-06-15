@@ -5,6 +5,7 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton }
 import CodeIcon from '@mui/icons-material/Code';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DownloadIcon from '@mui/icons-material/Download';
+import { v4 as uuidv4 } from 'uuid';
 
 export function HtmlAgent(props: { sx?: object }) {
   const { messages, emit } = useAgentBus();
@@ -112,11 +113,16 @@ ${latestDraft}`;
     `;
     setHtml(generatedHtml);
     emit("htmlReady", {
+      id: uuidv4(),
       sender: "HtmlAgent",
       receiver: "User",
       type: "html",
       content: generatedHtml,
       timestamp: new Date().toISOString(),
+      prompt: undefined,
+      provider: undefined,
+      model: undefined,
+      usage: undefined,
     });
     setIsLoading(false);
   };
@@ -140,6 +146,7 @@ ${latestDraft}`;
       color="#ff9800"
       state={html ? 'done' : isLoading ? 'loading' : 'idle'}
       sx={props.sx}
+      agentKey="HtmlAgent"
     >
       <Button
         variant="contained"
