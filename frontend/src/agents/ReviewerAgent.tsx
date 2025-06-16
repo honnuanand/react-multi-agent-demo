@@ -84,13 +84,19 @@ export function ReviewerAgent(props: { sx?: object }) {
           id: uuidv4(),
           sender: "ReviewerAgent",
           receiver: "WriterAgent",
-          type: "feedback",
+          type: "review",
           content: reviewFeedback.content,
           timestamp: new Date().toISOString(),
-          prompt: undefined,
-          provider: undefined,
-          model: undefined,
-          usage: undefined,
+          prompt: messages,
+          provider,
+          model: llms[provider].model || '',
+          usage: {
+            prompt_tokens: usageRaw?.prompt_tokens ?? usageRaw?.promptTokens ?? usageRaw?.input_tokens ?? 0,
+            completion_tokens: usageRaw?.completion_tokens ?? usageRaw?.completionTokens ?? usageRaw?.output_tokens ?? 0,
+            total_tokens: usageRaw?.total_tokens ?? usageRaw?.totalTokens ?? ((usageRaw?.input_tokens ?? 0) + (usageRaw?.output_tokens ?? 0)),
+            input_tokens: usageRaw?.input_tokens,
+            output_tokens: usageRaw?.output_tokens,
+          },
         });
       } catch (error) {
         console.error("Review error:", error);

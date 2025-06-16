@@ -8,6 +8,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MemoryIcon from '@mui/icons-material/Memory';
 import CodeIcon from '@mui/icons-material/Code';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
 
 // Message type to color mapping
 const MESSAGE_TYPE_COLORS: Record<string, string> = {
@@ -132,59 +133,146 @@ export function CollapsibleTimeline() {
   const groups = groupMessagesByFlow(filteredMessages);
 
   function MessageMetadataFull({ message }: { message: Message }) {
-    // Always show all MCP fields, with N/A for missing values, and hide if toggle is on
-    const fields = [
+    const [showPrompt, setShowPrompt] = useState(false);
+    const [showUsage, setShowUsage] = useState(false);
+    // Routing Section
+    const routing = [
+      {
+        key: 'id',
+        label: 'Message ID',
+        value: message.id ?? 'N/A',
+        icon: <></>,
+        tooltip: 'Unique message identifier',
+        copy: true,
+      },
+    ];
+    // LLM Info Section
+    const llmInfo = [
       {
         key: 'provider',
         label: 'LLM Provider',
-        icon: <MemoryIcon />,
         value: message.provider ?? 'N/A',
-        show: !!message.provider || !hideEmptyFields,
+        icon: <MemoryIcon fontSize="small" />,
+        tooltip: 'LLM provider (OpenAI, Anthropic, etc.)',
       },
       {
         key: 'model',
         label: 'Model',
-        icon: <CodeIcon />,
         value: message.model ?? 'N/A',
-        show: !!message.model || !hideEmptyFields,
-      },
-      {
-        key: 'usage',
-        label: 'Token Usage',
-        icon: undefined,
-        value: message.usage ? `${message.usage.total_tokens || 0} tokens` : 'N/A',
-        show: !!message.usage || !hideEmptyFields,
-      },
-      {
-        key: 'prompt',
-        label: 'Prompt',
-        icon: undefined,
-        value: message.prompt ? 'Yes' : 'N/A',
-        show: !!message.prompt || !hideEmptyFields,
+        icon: <CodeIcon fontSize="small" />,
+        tooltip: 'Model name',
       },
     ];
+    // Token Usage Section
+    const usage = message.usage || {};
+    const usageFields = [
+      { key: 'prompt_tokens', label: 'Prompt tokens', value: usage.prompt_tokens ?? 'N/A' },
+      { key: 'completion_tokens', label: 'Completion tokens', value: usage.completion_tokens ?? 'N/A' },
+      { key: 'total_tokens', label: 'Total tokens', value: usage.total_tokens ?? 'N/A' },
+      { key: 'input_tokens', label: 'Input tokens', value: usage.input_tokens ?? 'N/A' },
+      { key: 'output_tokens', label: 'Output tokens', value: usage.output_tokens ?? 'N/A' },
+    ];
+    // Prompt Section
+    const promptValue = typeof message.prompt === 'string' ? message.prompt : JSON.stringify(message.prompt, null, 2);
+    // UI
     return (
-      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-        <Tooltip title="Timestamp">
-          <Chip
-            size="small"
-            icon={<AccessTimeIcon />}
-            label={new Date(message.timestamp).toLocaleTimeString()}
-            variant="outlined"
-          />
-        </Tooltip>
-        {fields.map(f => f.show && (
-          <Tooltip key={f.key} title={f.label}>
-            <Chip
-              size="small"
-              icon={f.icon}
-              label={f.value}
-              variant="outlined"
-              sx={f.key === 'prompt' ? { fontFamily: 'monospace', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' } : {}}
-            />
-          </Tooltip>
-        ))}
-      </Box>
+      <Paper variant="outlined" sx={{ p: 1, mb: 1, bgcolor: '#fafbfc' }}>
+        {/* Envelope (meta) at the top */}
+        <Box>
+          {/* Routing Section */}
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', mb: 1 }}>
+            {/* Sender → Receiver with single arrow */}
+            <Tooltip title={`Sender → Receiver`}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>Sender:</Typography>
+                <Typography variant="body2" sx={{ ml: 0.5 }}>{message.sender ?? 'N/A'}</Typography>
+                <ArrowForwardIcon fontSize="small" sx={{ mx: 0.5 }} />
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>Receiver:</Typography>
+                <Typography variant="body2" sx={{ ml: 0.5 }}>{message.receiver ?? 'N/A'}</Typography>
+              </Box>
+            </Tooltip>
+            {/* Message ID, Type, Timestamp */}
+            {routing.map(f => (
+              <Tooltip key={f.key} title={f.tooltip}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {f.icon}
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{f.label}:</Typography>
+                  <Typography variant="body2" sx={{ ml: 0.5 }}>
+                    {f.value}
+                    {f.copy && f.value !== 'N/A' && (
+                      <IconButton size="small" onClick={() => navigator.clipboard.writeText(f.value)}>
+                        <svg width="12" height="12" viewBox="0 0 24 24"><path fill="currentColor" d="M19 21H9a2 2 0 0 1-2-2V7h2v12h10v2m3-16v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6l2 2h6a2 2 0 0 1 2 2Z"/></svg>
+                      </IconButton>
+                    )}
+                  </Typography>
+                </Box>
+              </Tooltip>
+            ))}
+            {/* Type and Timestamp */}
+            <Tooltip title="Message type">
+              <Chip size="small" label={message.type} sx={{ bgcolor: MESSAGE_TYPE_COLORS[message.type] || '#eee', color: '#fff', ml: 1 }} />
+            </Tooltip>
+            <Tooltip title="Time sent">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 1 }}>
+                <AccessTimeIcon fontSize="small" />
+                <Typography variant="body2">{message.timestamp ? new Date(message.timestamp).toLocaleString() : 'N/A'}</Typography>
+              </Box>
+            </Tooltip>
+          </Box>
+          {/* LLM Info Section */}
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', mb: 1 }}>
+            {llmInfo.map(f => (
+              <Tooltip key={f.key} title={f.tooltip}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  {f.icon}
+                  <Typography variant="caption" sx={{ fontWeight: 600 }}>{f.label}:</Typography>
+                  <Typography variant="body2" sx={{ ml: 0.5 }}>{f.value}</Typography>
+                </Box>
+              </Tooltip>
+            ))}
+          </Box>
+          {/* Token Usage Section (expandable) */}
+          <Box sx={{ mb: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>Token Usage:</Typography>
+              <IconButton size="small" onClick={() => setShowUsage(v => !v)}>
+                {showUsage ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+              </IconButton>
+            </Box>
+            <Collapse in={showUsage}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mt: 0.5 }}>
+                {usageFields.map(f => (
+                  <Box key={f.key} sx={{ minWidth: 100 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 500 }}>{f.label}:</Typography>
+                    <Typography variant="body2" sx={{ ml: 0.5 }}>{f.value}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Collapse>
+          </Box>
+          {/* Prompt Section (expandable) */}
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>Prompt:</Typography>
+              <IconButton size="small" onClick={() => setShowPrompt(v => !v)}>
+                {showPrompt ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+              </IconButton>
+            </Box>
+            <Collapse in={showPrompt}>
+              <Box sx={{ mt: 0.5, bgcolor: '#f5f5f5', p: 1, borderRadius: 1, fontFamily: 'monospace', fontSize: 13, maxHeight: 200, overflow: 'auto' }}>
+                {promptValue && promptValue !== 'undefined' ? promptValue : 'N/A'}
+              </Box>
+            </Collapse>
+          </Box>
+        </Box>
+        {/* Payload Section */}
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block' }}>Payload:</Typography>
+          <Paper variant="outlined" sx={{ p: 1, bgcolor: '#fff', fontFamily: 'monospace', fontSize: 14, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
+            {message.content || 'N/A'}
+          </Paper>
+        </Box>
+      </Paper>
     );
   }
 
@@ -192,7 +280,13 @@ export function CollapsibleTimeline() {
     <Paper elevation={2} sx={{ mt: 4, p: 2 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => setOpen(o => !o)}>
-          <Box component="span" sx={{ typography: 'subtitle1' }}>Message Timeline</Box>
+          <DirectionsBusIcon sx={{ mr: 1, color: '#1976d2' }} />
+          <Box component="span" sx={{ typography: 'subtitle1', fontWeight: 700 }}>
+            Agent Message Bus
+          </Box>
+          <Typography variant="caption" sx={{ ml: 1, color: '#888' }}>
+            (Timeline)
+          </Typography>
           <IconButton size="small">
             {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>
@@ -276,33 +370,6 @@ export function CollapsibleTimeline() {
                               </Box>
                               <Collapse in={expandedSteps[stepKey]}>
                                 <Box sx={{ pl: 2, pt: 0.5 }}>
-                                  {msg.prompt && (
-                                    <Box sx={{ mb: 1 }}>
-                                      <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
-                                        Prompt:
-                                      </Typography>
-                                      <Box sx={{ 
-                                        background: '#f8f9fa', 
-                                        p: 1, 
-                                        borderRadius: 1,
-                                        fontFamily: 'monospace',
-                                        fontSize: '0.875rem',
-                                        whiteSpace: 'pre-wrap'
-                                      }}>
-                                        {JSON.stringify(msg.prompt, null, 2)}
-                                      </Box>
-                                    </Box>
-                                  )}
-                                  <Typography 
-                                    variant="body2" 
-                                    sx={{ 
-                                      whiteSpace: 'pre-line',
-                                      fontFamily: (msg.type === 'llm_request' || msg.type === 'llm_response' || msg.prompt) ? 'monospace' : 'inherit',
-                                      fontSize: (msg.type === 'llm_request' || msg.type === 'llm_response' || msg.prompt) ? '0.875rem' : 'inherit'
-                                    }}
-                                  >
-                                    {msg.content}
-                                  </Typography>
                                   <MessageMetadataFull message={msg} />
                                 </Box>
                               </Collapse>
