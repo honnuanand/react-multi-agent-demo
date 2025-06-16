@@ -14,6 +14,8 @@ import {
   Tooltip,
   Chip,
   Collapse,
+  Paper,
+  useTheme,
 } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -23,6 +25,9 @@ import { useAgentBus } from '../context/AgentBusContext';
 import { useReset } from '../context/ResetContext';
 import type { Message } from '../context/AgentBusContext';
 import { groupMessagesByFlow } from './Timeline';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import CodeIcon from '@mui/icons-material/Code';
+import MessageIcon from '@mui/icons-material/Message';
 
 // Helper to group messages by agent and session/flow
 function groupLLMMessages(messages: Message[]) {
@@ -54,6 +59,7 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
   const { resetSignal } = useReset();
   const [expandedAgent, setExpandedAgent] = useState<string | false>(false);
   const [expandedPair, setExpandedPair] = useState<Record<string, { prompt: boolean; response: boolean }>>({});
+  const theme = useTheme();
 
   // Reset expanded states when reset signal changes
   useEffect(() => {
@@ -63,7 +69,6 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
 
   // Group all messages by flow, then filter for LLM messages in each flow
   const flows = groupMessagesByFlow(messages);
-  console.log('LLMDrawer flows:', flows);
 
   return (
     <Drawer
@@ -73,25 +78,58 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
       variant="temporary"
       sx={{
         '& .MuiDrawer-paper': {
-          width: 420,
+          width: 480,
           boxSizing: 'border-box',
           p: 0,
+          background: theme.palette.background.default,
+          display: 'flex',
+          flexDirection: 'column',
         },
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', p: 2, borderBottom: '1px solid #eee' }}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          Agent LLM Interactions
+      <Box sx={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        p: 2, 
+        borderBottom: '1px solid',
+        borderColor: 'divider',
+        background: theme.palette.primary.main,
+        color: 'white',
+        flexShrink: 0,
+      }}>
+        <SmartToyIcon sx={{ mr: 1 }} />
+        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
+          LLM Interactions
         </Typography>
-        <IconButton onClick={onClose}>
+        <IconButton onClick={onClose} sx={{ color: 'white' }}>
           <ChevronRightIcon />
         </IconButton>
       </Box>
-      <Box sx={{ p: 2, overflowY: 'auto', height: '100%' }}>
+      <Box sx={{ 
+        flexGrow: 1,
+        overflow: 'auto',
+        p: 2,
+        '& > *': {
+          minHeight: 0,
+        },
+      }}>
         {flows.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            No LLM interactions yet.
-          </Typography>
+          <Paper 
+            elevation={0} 
+            sx={{ 
+              p: 3, 
+              textAlign: 'center',
+              background: theme.palette.background.paper,
+              borderRadius: 2,
+              border: '1px dashed',
+              borderColor: 'divider'
+            }}
+          >
+            <MessageIcon sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+            <Typography variant="body1" color="text.secondary">
+              No LLM interactions yet.
+            </Typography>
+          </Paper>
         ) : (
           flows.map((flow: { messages: Message[]; summary: string }, flowIdx: number) => {
             // Pair up LLM requests and responses in this flow
@@ -118,16 +156,46 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
                 key={flowIdx}
                 expanded={expandedAgent === `flow-${flowIdx}`}
                 onChange={(_, isExpanded) => setExpandedAgent(isExpanded ? `flow-${flowIdx}` : false)}
-                sx={{ mb: 2 }}
+                sx={{ 
+                  mb: 2,
+                  '&:before': { display: 'none' },
+                  borderRadius: '8px !important',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                }}
               >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                    Flow {flowIdx + 1}{flow.summary ? `: ${flow.summary.slice(0, 60)}${flow.summary.length > 60 ? '...' : ''}` : ''}
-                  </Typography>
-                  <Chip label={llmPairs.length} size="small" sx={{ ml: 2 }} />
+                <AccordionSummary 
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{
+                    background: theme.palette.background.paper,
+                    '&:hover': {
+                      background: theme.palette.action.hover,
+                    },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1 }}>
+                      Flow {flowIdx + 1}
+                      {flow.summary ? (
+                        <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1, fontWeight: 'normal' }}>
+                          {flow.summary.slice(0, 60)}{flow.summary.length > 60 ? '...' : ''}
+                        </Typography>
+                      ) : null}
+                    </Typography>
+                    <Chip 
+                      label={llmPairs.length} 
+                      size="small" 
+                      sx={{ 
+                        ml: 2,
+                        background: theme.palette.primary.main,
+                        color: 'white',
+                        fontWeight: 600,
+                      }} 
+                    />
+                  </Box>
                 </AccordionSummary>
-                <AccordionDetails>
-                  <List dense>
+                <AccordionDetails sx={{ p: 0 }}>
+                  <List dense sx={{ p: 0 }}>
                     {llmPairs.map((pair, idx) => {
                       const pairKey = `${flowIdx}-${idx}`;
                       const expanded = expandedPair[pairKey] || { prompt: false, response: false };
@@ -136,60 +204,135 @@ export function AgentLLMDrawer({ open, onClose }: AgentLLMDrawerProps) {
                         [pairKey]: { ...prev[pairKey], [section]: !prev[pairKey]?.[section] }
                       }));
                       return (
-                        <Accordion key={pair.request.id || idx} sx={{ mb: 1 }}>
-                          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                              LLM Request/Response
-                              {pair.request.sender ? ` • ${pair.request.sender}` : ''}
-                              {pair.request.timestamp ? ` • ${new Date(pair.request.timestamp).toLocaleTimeString()}` : ''}
-                            </Typography>
-                          </AccordionSummary>
-                          <AccordionDetails>
-                            {/* Prompt Section (collapsible) */}
-                            <Box sx={{ mb: 1 }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => toggle('prompt')}>
-                                <Typography variant="caption" color="primary" sx={{ fontWeight: 700 }}>Prompt</Typography>
+                        <Paper 
+                          key={pair.request.id || idx} 
+                          elevation={0}
+                          sx={{ 
+                            mb: 1,
+                            borderRadius: 2,
+                            overflow: 'hidden',
+                            border: '1px solid',
+                            borderColor: 'divider',
+                          }}
+                        >
+                          <Box sx={{ p: 1.5, background: theme.palette.background.paper }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              <CodeIcon sx={{ fontSize: 16, mr: 1, color: 'primary.main' }} />
+                              <Typography variant="body2" sx={{ fontWeight: 500, flexGrow: 1 }}>
+                                {pair.request.sender || 'Unknown Agent'}
+                              </Typography>
+                              {pair.request.timestamp && (
+                                <Typography variant="caption" color="text.secondary">
+                                  {new Date(pair.request.timestamp).toLocaleTimeString()}
+                                </Typography>
+                              )}
+                            </Box>
+                            {/* Prompt Section */}
+                            <Box sx={{ mb: pair.response ? 1 : 0 }}>
+                              <Box 
+                                sx={{ 
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  cursor: 'pointer',
+                                  p: 0.5,
+                                  borderRadius: 1,
+                                  '&:hover': {
+                                    background: theme.palette.action.hover,
+                                  },
+                                }} 
+                                onClick={() => toggle('prompt')}
+                              >
+                                <Typography variant="caption" color="primary" sx={{ fontWeight: 600 }}>Prompt</Typography>
                                 <IconButton size="small">
                                   {expanded.prompt ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                                 </IconButton>
                               </Box>
                               <Collapse in={expanded.prompt}>
-                                <Box sx={{ background: '#f5f5f5', p: 1, borderRadius: 1, width: '100%' }}>
-                                  <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
+                                <Box sx={{ 
+                                  background: theme.palette.grey[50], 
+                                  p: 1.5, 
+                                  borderRadius: 1,
+                                  mt: 0.5,
+                                  border: '1px solid',
+                                  borderColor: 'divider',
+                                  maxHeight: '300px',
+                                  overflow: 'auto',
+                                }}>
+                                  <pre style={{ 
+                                    margin: 0, 
+                                    fontFamily: 'monospace', 
+                                    fontSize: 13, 
+                                    whiteSpace: 'pre-wrap',
+                                    color: theme.palette.text.primary,
+                                  }}>
                                     {pair.request.prompt ? JSON.stringify(pair.request.prompt, null, 2) : 'N/A'}
                                   </pre>
                                 </Box>
                               </Collapse>
                             </Box>
-                            {/* Response Section (collapsible, only if response exists) */}
+                            {/* Response Section */}
                             {pair.response && (
                               <Box>
-                                <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={() => toggle('response')}>
-                                  <Typography variant="caption" color="secondary" sx={{ fontWeight: 700 }}>Response</Typography>
+                                <Box 
+                                  sx={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    cursor: 'pointer',
+                                    p: 0.5,
+                                    borderRadius: 1,
+                                    '&:hover': {
+                                      background: theme.palette.action.hover,
+                                    },
+                                  }} 
+                                  onClick={() => toggle('response')}
+                                >
+                                  <Typography variant="caption" color="secondary" sx={{ fontWeight: 600 }}>Response</Typography>
                                   <IconButton size="small">
                                     {expanded.response ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
                                   </IconButton>
                                 </Box>
                                 <Collapse in={expanded.response}>
-                                  <Box sx={{ background: '#f5f5f5', p: 1, borderRadius: 1, width: '100%' }}>
-                                    <pre style={{ margin: 0, fontFamily: 'monospace', fontSize: 13, whiteSpace: 'pre-wrap' }}>
+                                  <Box sx={{ 
+                                    background: theme.palette.grey[50], 
+                                    p: 1.5, 
+                                    borderRadius: 1,
+                                    mt: 0.5,
+                                    border: '1px solid',
+                                    borderColor: 'divider',
+                                    maxHeight: '300px',
+                                    overflow: 'auto',
+                                  }}>
+                                    <pre style={{ 
+                                      margin: 0, 
+                                      fontFamily: 'monospace', 
+                                      fontSize: 13, 
+                                      whiteSpace: 'pre-wrap',
+                                      color: theme.palette.text.primary,
+                                    }}>
                                       {pair.response.content || 'N/A'}
                                     </pre>
                                     {pair.response.usage && (
-                                      <Typography variant="caption" sx={{ color: '#888', mt: 1 }}>
-                                        {pair.response.usage.prompt_tokens !== undefined && <>Prompt tokens: {pair.response.usage.prompt_tokens}<br /></>}
-                                        {pair.response.usage.completion_tokens !== undefined && <>Completion tokens: {pair.response.usage.completion_tokens}<br /></>}
-                                        {pair.response.usage.input_tokens !== undefined && <>Input tokens: {pair.response.usage.input_tokens}<br /></>}
-                                        {pair.response.usage.output_tokens !== undefined && <>Output tokens: {pair.response.usage.output_tokens}<br /></>}
-                                        {pair.response.usage.total_tokens !== undefined && <>Total tokens: {pair.response.usage.total_tokens}<br /></>}
-                                      </Typography>
+                                      <Box sx={{ 
+                                        mt: 1.5, 
+                                        pt: 1.5, 
+                                        borderTop: '1px solid',
+                                        borderColor: 'divider',
+                                      }}>
+                                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                                          {pair.response.usage.prompt_tokens !== undefined && <>Prompt tokens: {pair.response.usage.prompt_tokens}</>}
+                                          {pair.response.usage.completion_tokens !== undefined && <> • Completion tokens: {pair.response.usage.completion_tokens}</>}
+                                          {pair.response.usage.input_tokens !== undefined && <> • Input tokens: {pair.response.usage.input_tokens}</>}
+                                          {pair.response.usage.output_tokens !== undefined && <> • Output tokens: {pair.response.usage.output_tokens}</>}
+                                          {pair.response.usage.total_tokens !== undefined && <> • Total tokens: {pair.response.usage.total_tokens}</>}
+                                        </Typography>
+                                      </Box>
                                     )}
                                   </Box>
                                 </Collapse>
                               </Box>
                             )}
-                          </AccordionDetails>
-                        </Accordion>
+                          </Box>
+                        </Paper>
                       );
                     })}
                   </List>

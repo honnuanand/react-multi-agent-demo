@@ -235,7 +235,7 @@ export default function App() {
                 <Box component="main" sx={{ flexGrow: 1, p: 3, ml: { md: navOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px`, xs: 0 }, transition: 'margin-left 0.3s' }}>
                   <Toolbar />
                   <AppInfo mode={selectedExample === "Multi-LLM Agent Flow" ? "multi" : "single"} />
-                  <ConfigPanel multiLLMMode={selectedExample === "Multi-LLM Agent Flow"} />
+                  <ConfigPanel />
                   <ResetButton />
                   {/* Agent Boxes Section with Title and Paper */}
                   <Paper elevation={2} sx={{ p: 3, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}>

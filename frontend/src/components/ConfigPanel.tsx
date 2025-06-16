@@ -11,14 +11,21 @@ import {
   Divider,
   Collapse,
   Grid,
+  List,
+  ListItem,
+  ListItemText,
+  Alert,
+  Select,
+  FormControl,
+  InputLabel,
+  CircularProgress,
 } from '@mui/material';
-import { useConfig, LLMProvider, AgentLLMSelection } from '../context/ConfigContext';
+import { useConfig, LLMProvider } from '../context/ConfigContext';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const PROVIDERS: { key: LLMProvider; label: string }[] = [
@@ -26,188 +33,189 @@ const PROVIDERS: { key: LLMProvider; label: string }[] = [
   { key: 'anthropic', label: 'Anthropic' },
   { key: 'databricks', label: 'Databricks' },
 ];
-const AGENTS: { key: keyof AgentLLMSelection; label: string }[] = [
-  { key: 'PlannerAgent', label: 'Planner' },
-  { key: 'ResearchAgent', label: 'Researcher' },
-  { key: 'WriterAgent', label: 'Writer' },
-  { key: 'ReviewerAgent', label: 'Reviewer' },
+
+const OPENAI_MODELS = [
+  'gpt-3.5-turbo',
+  'gpt-4',
+  'gpt-4-turbo-preview'
 ];
 
-export function ConfigPanel({ multiLLMMode = false }: { multiLLMMode?: boolean }) {
-  const { llms, setLLM, agentLLMs, setAgentLLM, configuredLLMs, testLLMConnection, setGlobalLLMProvider, testSuccess } = useConfig();
-  const [showKey, setShowKey] = useState<{ [k in LLMProvider]?: boolean }>({});
-  const [temp, setTemp] = useState(() => ({
-    openai: { ...llms.openai },
-    anthropic: { ...llms.anthropic },
-    databricks: { ...llms.databricks },
-  }));
-  const [open, setOpen] = useState(true);
-  const [testStatus, setTestStatus] = useState<{ [k in LLMProvider]?: { success: boolean; message: string } }>({});
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
+const ANTHROPIC_MODELS = [
+  'claude-3-opus-20240229',
+  'claude-3-sonnet-20240229',
+  'claude-3-haiku-20240307'
+];
 
-  const handleSave = async (provider: LLMProvider) => {
-    await setLLM(provider, temp[provider]);
-  };
+interface DatabricksEndpoint {
+  name: string;
+  status: string;
+  url: string;
+}
 
-  const handleToggleVisibility = (provider: LLMProvider) => {
-    setShowKey(prev => ({ ...prev, [provider]: !prev[provider] }));
+export function ConfigPanel() {
+  const { llms, setLLM, testLLMConnection } = useConfig();
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [testStatus, setTestStatus] = useState<{ [key: string]: { status: "idle" | "loading" | "success" | "error"; message?: string } }>({});
+  const [databricksEndpoints, setDatabricksEndpoints] = useState<DatabricksEndpoint[]>([]);
+  const [loadingEndpoints, setLoadingEndpoints] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const handleChange = (provider: LLMProvider, field: string, value: string) => {
+    setLLM(provider, { [field]: value });
   };
 
   const handleTest = async (provider: LLMProvider) => {
+    setTestStatus((prev) => ({ ...prev, [provider]: { status: "loading" } }));
     try {
       const success = await testLLMConnection(provider);
-      setTestStatus(prev => ({ ...prev, [provider]: { success, message: success ? `Successfully connected to ${provider}!` : `Failed to connect to ${provider}.` } }));
-    } catch (error: any) {
-      console.error('Error testing connection:', error);
-      setTestStatus(prev => ({ ...prev, [provider]: { success: false, message: `Failed to connect to ${provider}: ${error.message}` } }));
+      if (success) {
+        setTestStatus((prev) => ({ ...prev, [provider]: { status: "success", message: "Connection successful!" } }));
+        if (provider === "databricks") {
+          // Fetch endpoints after successful connection
+          const response = await fetch('/api/llm/databricks/models', {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+          if (response.ok) {
+            const data = await response.json();
+            setDatabricksEndpoints(data.models || []);
+          }
+        }
+      } else {
+        setTestStatus((prev) => ({ ...prev, [provider]: { status: "error", message: "Connection failed" } }));
+      }
+    } catch (error) {
+      setTestStatus((prev) => ({ ...prev, [provider]: { status: "error", message: "Connection test failed" } }));
     }
   };
 
-  const configuredProviderKeys = configuredLLMs;
-  const configuredProviders = PROVIDERS.filter(p => configuredProviderKeys.includes(p.key));
+  const handleEndpointSelect = (endpoint: DatabricksEndpoint) => {
+    setLLM('databricks', { 
+      model: endpoint.name,
+      apiUrl: endpoint.url 
+    });
+  };
 
   return (
-    <Paper
-      elevation={3}
-      sx={{ p: 0, mb: 3, backgroundColor: 'background.paper', borderRadius: 2 }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', px: 3, py: 2, cursor: 'pointer' }} onClick={() => setOpen(o => !o)}>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
-          LLM Configuration
-        </Typography>
-        <IconButton size="small">
-          {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+    <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+        <Typography variant="h6">Configuration</Typography>
+        <IconButton onClick={() => setExpanded(!expanded)}>
+          {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
       </Box>
-      <Collapse in={open}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, px: 3, pb: 3 }}>
-          {!multiLLMMode && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>Select LLM Provider</Typography>
-              <TextField
-                select
-                label="Provider"
-                value={agentLLMs.PlannerAgent}
-                onChange={e => setGlobalLLMProvider(e.target.value as LLMProvider)}
-                sx={{ minWidth: 180 }}
-              >
-                {PROVIDERS.map(p => (
-                  <MenuItem key={p.key} value={p.key}>{p.label}</MenuItem>
-                ))}
-              </TextField>
-            </Box>
-          )}
-          {PROVIDERS.map(({ key, label }) => (
-            <Box key={key} sx={{ border: '1px solid #eee', borderRadius: 2, p: 2, background: '#fafbfc' }}>
-              <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 600 }}>{label}</Typography>
-              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Collapse in={expanded}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {PROVIDERS.map((provider) => (
+            <Paper key={provider.key} variant="outlined" sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                 <TextField
-                  label={`${label} API Key`}
-                  type={showKey[key] ? 'text' : 'password'}
-                  value={temp[key].apiKey || ""}
-                  onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], apiKey: e.target.value } }))}
-                  fullWidth
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton onClick={() => handleToggleVisibility(key)} edge="end">
-                          {showKey[key] ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{ mb: 2, maxWidth: 400 }}
+                  size="small"
+                  label="API Key"
+                  type="password"
+                  value={llms[provider.key].apiKey || ''}
+                  onChange={(e) => handleChange(provider.key, 'apiKey', e.target.value)}
+                  sx={{ width: '300px' }}
                 />
-                <TextField
-                  label={`${label} Model`}
-                  value={temp[key].model || ""}
-                  onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], model: e.target.value } }))}
-                  fullWidth
-                  sx={{ mb: 2, maxWidth: 300 }}
-                />
-                {key === 'databricks' && (
-                  <TextField
-                    label="Databricks API URL"
-                    value={temp[key].apiUrl || ""}
-                    onChange={e => setTemp(t => ({ ...t, [key]: { ...t[key], apiUrl: e.target.value } }))}
-                    fullWidth
-                    sx={{ mb: 2, maxWidth: 400 }}
-                  />
+                {provider.key === 'openai' && (
+                  <FormControl size="small" sx={{ width: '200px' }}>
+                    <InputLabel>Model</InputLabel>
+                    <Select
+                      value={llms[provider.key].model || 'gpt-3.5-turbo'}
+                      onChange={(e) => handleChange(provider.key, 'model', e.target.value)}
+                      label="Model"
+                    >
+                      {OPENAI_MODELS.map((model) => (
+                        <MenuItem key={model} value={model}>{model}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                )}
+                {provider.key === 'anthropic' && (
+                  <FormControl size="small" sx={{ width: '200px' }}>
+                    <InputLabel>Model</InputLabel>
+                    <Select
+                      value={llms[provider.key].model || 'claude-3-opus-20240229'}
+                      onChange={(e) => handleChange(provider.key, 'model', e.target.value)}
+                      label="Model"
+                    >
+                      {ANTHROPIC_MODELS.map((model) => (
+                        <MenuItem key={model} value={model}>{model}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 )}
                 <Button
                   variant="contained"
-                  onClick={() => handleSave(key)}
-                  disabled={JSON.stringify(temp[key]) === JSON.stringify(llms[key])}
-                  sx={{ height: 56, alignSelf: 'flex-end' }}
-                >
-                  Save
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="info"
-                  onClick={() => handleTest(key)}
-                  sx={{ height: 56, alignSelf: 'flex-end' }}
+                  color="primary"
+                  onClick={() => handleTest(provider.key)}
+                  size="small"
                 >
                   Test
                 </Button>
-                {testStatus[key]?.message && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
-                    {testStatus[key].success && (
-                      <CheckCircleIcon sx={{ color: 'success.main', mr: 0.5, fontSize: 20 }} />
-                    )}
-                    <Typography variant="body2" color={testStatus[key].success ? 'success.main' : 'error.main'}>
-                      {testStatus[key].message}
-                    </Typography>
-                  </Box>
-                )}
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={() => setLLM(provider.key, llms[provider.key])}
+                  size="small"
+                >
+                  Save
+                </Button>
               </Box>
-            </Box>
+              {testStatus[provider.key]?.status === "loading" && (
+                <Box sx={{ mt: 1 }}>
+                  <CircularProgress size={20} />
+                </Box>
+              )}
+              {testStatus[provider.key]?.status === "success" && (
+                <Box sx={{ mt: 1 }}>
+                  <Alert severity="success" sx={{ py: 0 }}>{testStatus[provider.key].message}</Alert>
+                </Box>
+              )}
+              {testStatus[provider.key]?.status === "error" && (
+                <Box sx={{ mt: 1 }}>
+                  <Alert severity="error" sx={{ py: 0 }}>{testStatus[provider.key].message}</Alert>
+                </Box>
+              )}
+              {provider.key === 'databricks' && (
+                <Box sx={{ mt: 2 }}>
+                  <TextField
+                    fullWidth
+                    label="Databricks API URL"
+                    value={llms[provider.key].apiUrl || ''}
+                    onChange={(e) => handleChange(provider.key, 'apiUrl', e.target.value)}
+                    size="small"
+                  />
+                </Box>
+              )}
+              {provider.key === 'databricks' && databricksEndpoints.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>Available Databricks Endpoints:</Typography>
+                  <List dense>
+                    {databricksEndpoints.map((endpoint) => (
+                      <ListItem key={endpoint.name}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Select Endpoint</InputLabel>
+                          <Select
+                            value={endpoint.name}
+                            onChange={() => handleEndpointSelect(endpoint)}
+                            label="Select Endpoint"
+                          >
+                            <MenuItem value={endpoint.name}>{endpoint.name} - {endpoint.status}</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+            </Paper>
           ))}
         </Box>
-        {/* Only show per-agent selection in multiLLMMode */}
-        {multiLLMMode && (
-          <>
-            <Divider sx={{ my: 3 }} />
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600, px: 3 }}>
-              Per-Agent LLM Selection
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, px: 3, pb: 3 }}>
-              {AGENTS.map(agent => {
-                const agentValue = configuredProviderKeys.includes(agentLLMs[agent.key])
-                  ? agentLLMs[agent.key]
-                  : '';
-                return (
-                  <TextField
-                    key={agent.key}
-                    select
-                    label={agent.label}
-                    value={agentValue}
-                    onChange={e => setAgentLLM(agent.key, e.target.value as LLMProvider)}
-                    sx={{ minWidth: 180 }}
-                    disabled={configuredProviderKeys.length === 0}
-                  >
-                    {configuredProviders.map(p => (
-                      <MenuItem key={p.key} value={p.key}>
-                        {p.label} {testSuccess[p.key] && <CheckCircleIcon sx={{ color: 'success.main', fontSize: 18, ml: 0.5 }} />}
-                      </MenuItem>
-                    ))}
-                  </TextField>
-                );
-              })}
-            </Box>
-          </>
-        )}
       </Collapse>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackbar(s => ({ ...s, open: false }))} severity={snackbar.severity} sx={{ width: '100%' }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Paper>
   );
 }

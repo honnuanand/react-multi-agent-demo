@@ -44,13 +44,16 @@ interface SnackbarState {
 const defaultLLMConfig: LLMConfig = {
   openai: {
     model: 'gpt-4',
+    apiKey: '',
   },
   anthropic: {
     model: 'claude-3-opus-20240229',
+    apiKey: '',
   },
   databricks: {
     model: 'databricks-dbrx-instruct',
     apiUrl: '',
+    apiKey: '',
   },
 };
 
@@ -125,35 +128,70 @@ export const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
 
   const testLLMConnection = async (provider: LLMProvider): Promise<boolean> => {
     try {
-      const model = llms[provider].model || defaultLLMConfig[provider].model;
+      if (provider === 'databricks') {
+        // For Databricks, we'll test by listing available models
+        const response = await fetch('/api/llm/databricks/models', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`Databricks API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+        }
+        
+        const data = await response.json();
+        if (data.models && Array.isArray(data.models)) {
+          setTestSuccess(prev => ({ ...prev, [provider]: true }));
+          setSnackbar({
+            open: true,
+            message: `Successfully connected to Databricks! Found ${data.models.length} models.`,
+            severity: 'success',
+          });
+          return true;
+        }
+        throw new Error('Invalid response format from Databricks API');
+      }
+      
+      // For other providers, use the existing test message
       const response = await fetch(`/api/llm/${provider}`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ messages: [{ role: 'user', content: 'test' }], model, apiKey: llms[provider].apiKey, provider }),
+        body: JSON.stringify({
+          messages: [{ role: 'user', content: 'Test connection' }],
+          model: llms[provider].model,
+          apiKey: llms[provider].apiKey,
+          apiUrl: llms[provider].apiUrl,
+        }),
       });
-      if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: `Successfully connected to ${provider}!`,
-          severity: 'success',
-        });
-        setTestSuccess(prev => ({ ...prev, [provider]: true }));
-        return true;
-      } else {
-        setTestSuccess(prev => ({ ...prev, [provider]: false }));
-        throw new Error(`Failed to connect to ${provider}`);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`${provider} API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
       }
-    } catch (error) {
-      console.error(`Error testing ${provider} connection:`, error);
+
+      const data = await response.json();
+      setTestSuccess(prev => ({ ...prev, [provider]: true }));
       setSnackbar({
         open: true,
-        message: `Failed to connect to ${provider}. Please check your configuration.`,
+        message: `Successfully connected to ${provider}!`,
+        severity: 'success',
+      });
+      return true;
+    } catch (error: any) {
+      console.error(`Error testing ${provider} connection:`, error);
+      setTestSuccess(prev => ({ ...prev, [provider]: false }));
+      setSnackbar({
+        open: true,
+        message: `Failed to connect to ${provider}: ${error.message}`,
         severity: 'error',
       });
-      setTestSuccess(prev => ({ ...prev, [provider]: false }));
       return false;
     }
   };
