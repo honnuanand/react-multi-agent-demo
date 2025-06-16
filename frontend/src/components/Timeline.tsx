@@ -24,31 +24,56 @@ const MESSAGE_TYPE_COLORS: Record<string, string> = {
 // LLM message types to filter out
 const LLM_MESSAGE_TYPES = ['llm_request', 'llm_response'];
 
-function groupMessagesByFlow(messages: Message[]) {
+export function groupMessagesByFlow(messages: Message[]) {
   const groups: { messages: Message[]; summary: string }[] = [];
   let current: Message[] = [];
   let summary = '';
-  messages.forEach((msg) => {
+  let inReview = false;
+  messages.forEach((msg, idx) => {
     // Start a new group on PlannerAgent plan
     if (msg.sender === 'PlannerAgent' && msg.type === 'plan') {
       if (current.length) {
-        groups.push({ messages: current, summary });
+        groups.push({ messages: dedupeById(current), summary });
         current = [];
       }
       summary = msg.content;
+      inReview = false;
     }
     current.push(msg);
-    // End a group on WriterAgent rewrite after feedback
-    if (msg.sender === 'WriterAgent' && msg.type === 'draft' && current.length > 1) {
-      groups.push({ messages: current, summary });
+    // Mark when review is seen
+    if (msg.sender === 'ReviewerAgent' && msg.type === 'review') {
+      inReview = true;
+    }
+    // End a group only after WriterAgent draft that follows a review
+    if (
+      inReview &&
+      msg.sender === 'WriterAgent' &&
+      msg.type === 'draft' &&
+      idx < messages.length - 1 &&
+      // Next message is not another WriterAgent draft (to avoid splitting on rewrites)
+      messages[idx + 1].sender !== 'WriterAgent'
+    ) {
+      groups.push({ messages: dedupeById(current), summary });
       current = [];
       summary = '';
+      inReview = false;
     }
   });
   if (current.length) {
-    groups.push({ messages: current, summary });
+    groups.push({ messages: dedupeById(current), summary });
   }
   return groups;
+}
+
+function dedupeById(msgs: Message[]): Message[] {
+  const seen = new Set<string>();
+  return msgs.filter(m => {
+    // Only deduplicate agent-to-agent messages; always include LLM messages
+    if (m.type === 'llm_request' || m.type === 'llm_response') return true;
+    if (!m.id || seen.has(m.id)) return false;
+    seen.add(m.id);
+    return true;
+  });
 }
 
 function MessageMetadata({ message }: { message: Message }) {
@@ -314,6 +339,10 @@ export function CollapsibleTimeline() {
           />
         </Box>
       </Box>
+      {/* Description of the Agent Message Bus */}
+      <Typography variant="body2" sx={{ color: '#666', mb: 2, ml: 0.5 }}>
+        The Agent Message Bus shows all messages exchanged between agents and LLMs in the app. Each message represents a step in the collaborative workflow, including agent-to-agent tasks, LLM requests, and responses. Use this panel to trace, debug, and understand the flow of information between all components.
+      </Typography>
       <Collapse in={open}>
         {groups.length === 0 ? (
           <Typography variant="body2" sx={{ mt: 1 }}>

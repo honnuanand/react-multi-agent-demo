@@ -16,10 +16,10 @@ const agentNodes = [
 
 // Helper to get WriterAgent state from the message log
 function getWriterLoading(messages: Message[]) {
-  // Find the last feedback message from Reviewer to Writer
+  // Find the last review message from Reviewer to Writer
   for (let i = messages.length - 1; i >= 0; i--) {
     const msg = messages[i];
-    if (msg.sender === 'ReviewerAgent' && msg.receiver === 'WriterAgent' && msg.type === 'feedback') {
+    if (msg.sender === 'ReviewerAgent' && msg.receiver === 'WriterAgent' && msg.type === 'review') {
       // If there is no newer message from Writer to Reviewer, Writer is loading
       for (let j = i + 1; j < messages.length; j++) {
         if (messages[j].sender === 'WriterAgent' && messages[j].receiver === 'ReviewerAgent') {
@@ -82,42 +82,44 @@ export function AgentFlowGraph({ advancedMode = false }: { advancedMode?: boolea
     }));
   }, [advancedMode, activeAgent]);
 
-  // Determine if the WriterAgent has produced a draft
-  const writerDone = messages.some(
-    m => m.sender === 'WriterAgent' && m.type === 'draft'
-  );
-
-  // Show all messages in the flow
-  let edges = allMessages
-    .filter(msg => {
-      // Only show Writer->Html and Writer->Pdf edges if those messages exist
-      if (advancedMode && (msg.receiver === 'HtmlAgent' || msg.receiver === 'PdfAgent')) {
-        return true;
-      }
-      // Show all other edges as before
-      return !['HtmlAgent', 'PdfAgent'].includes(msg.receiver);
-    })
-    .map((msg, idx) => {
-      const isFeedbackEdge = msg.sender === 'ReviewerAgent' && msg.receiver === 'WriterAgent';
+  // Create edges based on message flow
+  const edges = useMemo(() => {
+    const edgeMap = new Map<string, any>();
+    
+    allMessages.forEach((msg, idx) => {
+      // Skip LLM messages
+      if (msg.type === 'llm_request' || msg.type === 'llm_response') return;
+      
+      // Skip HtmlAgent and PdfAgent messages unless in advanced mode
+      if (!advancedMode && (msg.receiver === 'HtmlAgent' || msg.receiver === 'PdfAgent')) return;
+      
+      const edgeId = `${msg.sender}-${msg.receiver}`;
+      const isReviewEdge = msg.sender === 'ReviewerAgent' && msg.receiver === 'WriterAgent' && msg.type === 'review';
       const isLast = idx === allMessages.length - 1;
-      return {
-        id: `e${msg.sender}-${msg.receiver}-${idx}`,
+      
+      edgeMap.set(edgeId, {
+        id: edgeId,
         source: msg.sender,
         target: msg.receiver,
-        animated: isFeedbackEdge && isLast && isWriterLoading,
-        style: { stroke: isFeedbackEdge ? '#1976d2' : '#bbb', strokeWidth: 2, strokeDasharray: isFeedbackEdge && isLast && isWriterLoading ? '6 4' : 'none' },
+        animated: isReviewEdge && isLast && isWriterLoading,
+        style: { 
+          stroke: isReviewEdge ? '#1976d2' : '#bbb', 
+          strokeWidth: 2, 
+          strokeDasharray: isReviewEdge && isLast && isWriterLoading ? '6 4' : 'none' 
+        },
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          color: isFeedbackEdge ? '#1976d2' : '#bbb',
+          color: isReviewEdge ? '#1976d2' : '#bbb',
         },
         label: msg.type,
         labelBgPadding: [6, 2] as [number, number],
         labelBgBorderRadius: 4,
         labelBgStyle: { fill: '#fff', color: '#1976d2', fillOpacity: 0.8 },
-      };
+      });
     });
-
-  // In advanced mode, only show Writer->Html and Writer->Pdf edges if those messages exist (already handled above)
+    
+    return Array.from(edgeMap.values());
+  }, [allMessages, advancedMode, isWriterLoading]);
 
   return (
     <div style={{ width: '100%', height: 320, margin: '32px 0' }}>
